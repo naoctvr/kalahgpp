@@ -282,7 +282,7 @@ app.get('/api/admin/stats', async (req, res) => {
         const totalToday = parseInt(todayRows[0].count);
 
         const [criticalRows] = await db.query(
-            "SELECT COUNT(*) as count FROM diagnosis_logs WHERE final_result LIKE '%Bahaya%' OR final_result LIKE '%Segera%' OR final_result LIKE '%Gawat%' OR final_result LIKE '%Darurat%' OR final_result LIKE '%Kritis%'"
+            "SELECT COUNT(*) as count FROM diagnosis_logs WHERE final_result ILIKE '%Bahaya%' OR final_result ILIKE '%Segera%' OR final_result ILIKE '%Gawat%' OR final_result ILIKE '%Darurat%' OR final_result ILIKE '%Kritis%'"
         );
         const criticalCount = parseInt(criticalRows[0].count);
 
@@ -315,13 +315,13 @@ app.get('/api/admin/stats', async (req, res) => {
             FROM diagnosis_logs d
             JOIN users u ON d.user_id = u.id
             WHERE (
-                d.final_result LIKE '%Bahaya%' OR d.final_result LIKE '%Segera%' OR
-                d.final_result LIKE '%Gawat%' OR d.final_result LIKE '%Darurat%' OR
-                d.final_result LIKE '%Kritis%' OR d.final_result LIKE '%Eksaserbasi%' OR
-                d.final_result LIKE '%Emboli%' OR d.final_result LIKE '%Pneumothorax%' OR
-                d.final_result LIKE '%Cor Pulmonale%' OR d.final_result LIKE '%Gagal Jantung%' OR
-                d.final_result LIKE '%Kanker%' OR d.final_result LIKE '%Pneumonia%' OR
-                d.final_result LIKE '%Tuberkulosis%'
+                d.final_result ILIKE '%Bahaya%' OR d.final_result ILIKE '%Segera%' OR
+                d.final_result ILIKE '%Gawat%' OR d.final_result ILIKE '%Darurat%' OR
+                d.final_result ILIKE '%Kritis%' OR d.final_result ILIKE '%Eksaserbasi%' OR
+                d.final_result ILIKE '%Emboli%' OR d.final_result ILIKE '%Pneumothorax%' OR
+                d.final_result ILIKE '%Cor Pulmonale%' OR d.final_result ILIKE '%Gagal Jantung%' OR
+                d.final_result ILIKE '%Kanker%' OR d.final_result ILIKE '%Pneumonia%' OR
+                d.final_result ILIKE '%Tuberkulosis%'
             )
             AND d.created_at >= NOW() - INTERVAL '24 hours'
             LIMIT 10
@@ -331,13 +331,13 @@ app.get('/api/admin/stats', async (req, res) => {
             SELECT COUNT(DISTINCT user_id) as count 
             FROM diagnosis_logs 
             WHERE (
-                final_result LIKE '%Bahaya%' OR final_result LIKE '%Segera%' OR
-                final_result LIKE '%Gawat%' OR final_result LIKE '%Darurat%' OR
-                final_result LIKE '%Kritis%' OR final_result LIKE '%Eksaserbasi%' OR
-                final_result LIKE '%Emboli%' OR final_result LIKE '%Pneumothorax%' OR
-                final_result LIKE '%Cor Pulmonale%' OR final_result LIKE '%Gagal Jantung%' OR
-                final_result LIKE '%Kanker%' OR final_result LIKE '%Pneumonia%' OR
-                final_result LIKE '%Tuberkulosis%'
+                final_result ILIKE '%Bahaya%' OR final_result ILIKE '%Segera%' OR
+                final_result ILIKE '%Gawat%' OR final_result ILIKE '%Darurat%' OR
+                final_result ILIKE '%Kritis%' OR final_result ILIKE '%Eksaserbasi%' OR
+                final_result ILIKE '%Emboli%' OR final_result ILIKE '%Pneumothorax%' OR
+                final_result ILIKE '%Cor Pulmonale%' OR final_result ILIKE '%Gagal Jantung%' OR
+                final_result ILIKE '%Kanker%' OR final_result ILIKE '%Pneumonia%' OR
+                final_result ILIKE '%Tuberkulosis%'
             )
         `);
         const emergencyCount = parseInt(emergencyCountRows[0].count);
