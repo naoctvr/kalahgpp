@@ -1,23 +1,26 @@
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 
-const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '', // Default XAMPP password is empty
-    database: 'respira_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    dateStrings: true // Return dates as strings to avoid timezone conversion issues
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-db.getConnection((err, connection) => {
+pool.connect((err, client, release) => {
     if (err) {
-        console.error('Database Connection Failed:', err.code);
+        console.error('Database Connection Failed:', err.message);
     } else {
-        console.log('Connected to MySQL Database');
-        connection.release();
+        console.log('Connected to PostgreSQL Database');
+        release();
     }
 });
 
-module.exports = db.promise();
+// Wrap pool.query to match the mysql2 promise API shape: returns [rows, fields]
+const db = {
+    query: async (text, params) => {
+        const result = await pool.query(text, params);
+        return [result.rows, result.fields];
+    },
+    pool
+};
+
+module.exports = db;
