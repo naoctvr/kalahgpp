@@ -282,7 +282,7 @@ app.get('/api/admin/stats', async (req, res) => {
         const totalToday = parseInt(todayRows[0].count);
 
         const [criticalRows] = await db.query(
-            "SELECT COUNT(*) as count FROM diagnosis_logs WHERE final_result LIKE '%Bahaya%' OR final_result LIKE '%Segera%'"
+            "SELECT COUNT(*) as count FROM diagnosis_logs WHERE final_result LIKE '%Bahaya%' OR final_result LIKE '%Segera%' OR final_result LIKE '%Gawat%' OR final_result LIKE '%Darurat%' OR final_result LIKE '%Kritis%'"
         );
         const criticalCount = parseInt(criticalRows[0].count);
 
@@ -339,7 +339,6 @@ app.get('/api/admin/stats', async (req, res) => {
                 final_result LIKE '%Kanker%' OR final_result LIKE '%Pneumonia%' OR
                 final_result LIKE '%Tuberkulosis%'
             )
-            AND created_at >= NOW() - INTERVAL '24 hours'
         `);
         const emergencyCount = parseInt(emergencyCountRows[0].count);
 
