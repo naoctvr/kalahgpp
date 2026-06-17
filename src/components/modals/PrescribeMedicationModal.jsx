@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Activity, Plus, Clock, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Widgets';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
@@ -119,11 +119,14 @@ const PrescribeMedicationModal = ({ isOpen, onClose, patientId, patientName, app
                 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                    <div>
-                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                            💊 Kelola Resep & Jadwal Obat
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-0.5">Pasien: <strong className="text-slate-800">{patientName}</strong></p>
+                    <div className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-teal-600 shrink-0" />
+                        <div>
+                            <h3 className="text-lg font-extrabold text-slate-900">
+                                Kelola Resep & Jadwal Obat
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">Pasien: <strong className="text-slate-800">{patientName}</strong></p>
+                        </div>
                     </div>
                     <button 
                         onClick={onClose}
@@ -196,8 +199,8 @@ const PrescribeMedicationModal = ({ isOpen, onClose, patientId, patientName, app
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl shadow-md">
-                            ➕ Simpan Resep
+                        <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2">
+                            <Plus className="w-4 h-4" /> Simpan Resep
                         </Button>
                     </form>
 
@@ -216,21 +219,21 @@ const PrescribeMedicationModal = ({ isOpen, onClose, patientId, patientName, app
                                 {medications.map((med) => (
                                     <div key={med.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-150 flex items-center justify-between gap-4">
                                         <div>
-                                            <h5 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                                                <span>💊</span> {med.medicine_name}
+                                            <h5 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                                <Activity className="w-4 h-4 text-teal-650 shrink-0" /> {med.medicine_name}
                                             </h5>
                                             <p className="text-xs text-slate-500 mt-1">
                                                 Dosis: <strong className="text-slate-800">{med.dosage}</strong> • Frekuensi: <strong className="text-slate-800">{med.frequency}</strong>
                                             </p>
-                                            <p className="text-[10px] text-teal-600 font-bold bg-teal-50 px-2 py-0.5 rounded-full w-fit mt-1.5">
-                                                ⏰ Jam: {med.times}
+                                            <p className="text-[10px] text-teal-700 font-bold bg-teal-50 px-2.5 py-0.5 rounded-full w-fit mt-1.5 flex items-center gap-1 border border-teal-100">
+                                                <Clock className="w-3 h-3 text-teal-600" /> Jam: {med.times}
                                             </p>
                                         </div>
                                         <button
                                             onClick={() => handleDeleteMedication(med.id)}
-                                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-150 text-xs font-bold px-3 py-1.5 rounded-xl active:scale-95 transition"
+                                            className="bg-red-50 hover:bg-red-100 text-red-650 border border-red-150 text-xs font-bold px-3 py-1.5 rounded-xl active:scale-95 transition flex items-center gap-1"
                                         >
-                                            Batalkan Resep
+                                            <Trash2 className="w-3.5 h-3.5" /> Hapus
                                         </button>
                                     </div>
                                 ))}
@@ -262,7 +265,11 @@ const PrescribeMedicationModal = ({ isOpen, onClose, patientId, patientName, app
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white border-none font-extrabold px-6 py-2.5 rounded-xl shadow-md text-sm flex items-center gap-2 active:scale-95"
                                 disabled={completing}
                             >
-                                {completing ? 'Memproses...' : '✅ Selesaikan & Kirim Resep'}
+                                {completing ? 'Memproses...' : (
+                                    <>
+                                        <Check className="w-4 h-4" /> Selesaikan & Kirim Resep
+                                    </>
+                                )}
                             </Button>
                         )}
                     </div>

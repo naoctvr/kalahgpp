@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Save, Phone, Calendar, Activity, Droplet, Ruler, Weight, Bell } from 'lucide-react';
+import { User, Save, Phone, Calendar, Activity, Droplet, Ruler, Weight, Bell, Shield, Lock, Trash2, Send, Plus, Pin } from 'lucide-react';
 import { Card, Button } from '../components/ui/Widgets';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -181,8 +181,8 @@ const Profile = () => {
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
                             Pengaturan Profil
                             {user?.is_premium && (
-                                <span className="text-xs bg-amber-500/10 text-amber-600 border border-amber-500/25 px-2.5 py-0.5 rounded-full font-extrabold tracking-wider uppercase flex items-center gap-1">
-                                    👑 PRO
+                                <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200/50 px-2.5 py-0.5 rounded-full font-extrabold tracking-wider uppercase flex items-center gap-1">
+                                    <Shield className="w-3.5 h-3.5 text-teal-600" /> PRO
                                 </span>
                             )}
                         </h1>
@@ -195,35 +195,35 @@ const Profile = () => {
                     <button
                         type="button"
                         onClick={() => setActiveTab('profile')}
-                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 ${
+                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 flex items-center ${
                             activeTab === 'profile'
                                 ? 'border-teal-600 text-teal-600 font-bold'
                                 : 'border-transparent text-slate-500 hover:text-slate-800'
                         }`}
                     >
-                        👤 Profil & Data Biologis
+                        <User className="w-4 h-4 mr-2" /> Profil & Data Biologis
                     </button>
                     <button
                         type="button"
                         onClick={() => setActiveTab('telegram')}
-                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 ${
+                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 flex items-center ${
                             activeTab === 'telegram'
                                 ? 'border-teal-600 text-teal-600 font-bold'
                                 : 'border-transparent text-slate-500 hover:text-slate-800'
                         }`}
                     >
-                        🔔 Notifikasi Telegram
+                        <Bell className="w-4 h-4 mr-2" /> Notifikasi Telegram
                     </button>
                     <button
                         type="button"
                         onClick={() => setActiveTab('medication')}
-                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 ${
+                        className={`pb-3 px-4 font-semibold text-sm transition-all border-b-2 flex items-center ${
                             activeTab === 'medication'
                                 ? 'border-teal-600 text-teal-600 font-bold'
                                 : 'border-transparent text-slate-500 hover:text-slate-800'
                         }`}
                     >
-                        💊 Jadwal Obat (Pro)
+                        <Activity className="w-4 h-4 mr-2" /> Jadwal Obat (Pro)
                     </button>
                 </div>
 
@@ -367,9 +367,10 @@ const Profile = () => {
                         <div className="space-y-8">
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-2 border-b border-slate-100 pb-2 flex items-center justify-between">
-                                    <span>💊 Jadwal Pengingat Obat Telegram</span>
+                                    <Activity className="w-5 h-5 text-teal-600 inline mr-2" />
+                                    <span>Jadwal Pengingat Obat Telegram</span>
                                     {!user?.is_premium && (
-                                        <span className="text-xs bg-amber-500/10 text-amber-600 border border-amber-500/25 px-2.5 py-0.5 rounded-full font-extrabold uppercase">
+                                        <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200/30 px-2.5 py-0.5 rounded-full font-extrabold uppercase ml-2">
                                             Pro Feature
                                         </span>
                                     )}
@@ -381,7 +382,7 @@ const Profile = () => {
 
                             {!user?.is_premium ? (
                                 <div className="text-center p-8 bg-slate-50 rounded-2xl border border-slate-200/60 max-w-lg mx-auto">
-                                    <span className="text-4xl block mb-3">🔒</span>
+                                    <Lock className="w-10 h-10 mx-auto text-slate-400 mb-3" />
                                     <h4 className="font-bold text-slate-900 text-base mb-1">Fitur Terkunci</h4>
                                     <p className="text-xs text-slate-500 mb-4 leading-relaxed">
                                         Pengingat obat Telegram otomatis merupakan fitur eksklusif member Pro. Lakukan aktivasi untuk mendapatkan notifikasi obat tepat dosis secara instan.
@@ -390,7 +391,7 @@ const Profile = () => {
                                         to="/pricing"
                                         className="inline-block bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm shadow-md"
                                     >
-                                        Upgrade ke Pro ⚡
+                                        Upgrade ke Pro
                                     </Link>
                                 </div>
                             ) : (
@@ -457,8 +458,8 @@ const Profile = () => {
                                                 </div>
                                             )}
 
-                                            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl shadow-md">
-                                                ➕ Tambah Pengingat
+                                            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2">
+                                                <Plus className="w-4 h-4" /> Tambah Pengingat
                                             </Button>
                                         </form>
                                     )}
@@ -468,14 +469,14 @@ const Profile = () => {
                                         <div className="flex items-center justify-between mb-3">
                                             <h4 className="font-bold text-slate-900 text-sm">Daftar Obat Aktif</h4>
                                             {user?.role === 'patient' && (
-                                                <span className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1">
-                                                    📌 Resep dari Dokter Spesialis
+                                                <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1 border border-slate-200/50">
+                                                    <Pin className="w-3.5 h-3.5 text-teal-600" /> Resep dari Dokter Spesialis
                                                 </span>
                                             )}
                                         </div>
 
                                         {medications.length === 0 ? (
-                                            <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400">
+                                            <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs">
                                                 Tidak ada jadwal obat aktif dari dokter Anda.
                                             </div>
                                         ) : (
@@ -484,14 +485,14 @@ const Profile = () => {
                                                     <div key={med.id} className="bg-white p-5 rounded-2xl border border-slate-150 shadow-sm hover:shadow-md transition flex items-center justify-between gap-4">
                                                         <div className="space-y-1">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-xl">💊</span>
+                                                                <Activity className="w-5 h-5 text-teal-600 shrink-0" />
                                                                 <h5 className="font-bold text-slate-950 text-sm">{med.medicine_name}</h5>
                                                             </div>
                                                             <p className="text-xs text-slate-500 font-medium">
                                                                 Dosis: <strong className="text-slate-800">{med.dosage}</strong> • Frekuensi: <strong className="text-slate-800">{med.frequency}</strong>
                                                             </p>
-                                                            <p className="text-[11px] text-teal-600 font-bold bg-teal-50 px-2 py-0.5 rounded-full w-fit">
-                                                                ⏰ Jadwal Jam: {med.times}
+                                                            <p className="text-[11px] text-teal-700 font-bold bg-teal-50 px-2.5 py-0.5 rounded-full w-fit flex items-center gap-1 border border-teal-100">
+                                                                <Clock className="w-3.5 h-3.5 text-teal-600" /> Jadwal Jam: {med.times}
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-2">
@@ -500,14 +501,14 @@ const Profile = () => {
                                                                 className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1 active:scale-95"
                                                                 title="Tes kirim notifikasi sekarang juga ke Telegram Anda"
                                                             >
-                                                                ⚡ Tes Kirim
+                                                                <Send className="w-3 h-3" /> Tes Kirim
                                                             </button>
                                                             {(user?.role === 'expert' || user?.role === 'admin') && (
                                                                 <button
                                                                     onClick={() => handleDeleteMedication(med.id)}
-                                                                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-1.5 rounded-xl transition active:scale-95"
+                                                                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1"
                                                                 >
-                                                                    Hapus
+                                                                    <Trash2 className="w-3 h-3" /> Hapus
                                                                 </button>
                                                             )}
                                                         </div>

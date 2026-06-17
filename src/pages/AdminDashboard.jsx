@@ -339,8 +339,8 @@ const AdminDashboard = () => {
                                             <div className="hidden md:grid grid-cols-12 gap-4 items-center">
                                                 <div className="col-span-3 flex items-center gap-3 min-w-0">
                                                     <div className={clsx(
-                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0",
-                                                        u.is_premium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border",
+                                                        u.is_premium ? 'bg-teal-50 text-teal-700 border-teal-150' : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     )}>
                                                         {u.name?.charAt(0) || '?'}
                                                     </div>
@@ -352,15 +352,15 @@ const AdminDashboard = () => {
                                                 <div className="col-span-2">
                                                     <span className={clsx(
                                                         "text-xs font-medium px-2.5 py-1 rounded-full",
-                                                        u.role === 'expert' ? 'bg-teal-100 text-teal-700' : 'bg-blue-100 text-blue-700'
+                                                        u.role === 'expert' ? 'bg-teal-50 text-teal-700 border border-teal-150' : 'bg-blue-50 text-blue-700 border border-blue-150'
                                                     )}>
-                                                        {u.role === 'expert' ? '🩺 Dokter' : '👤 Pasien'}
+                                                        {u.role === 'expert' ? 'Dokter' : 'Pasien'}
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2">
                                                     {u.is_premium ? (
-                                                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200 flex items-center gap-1 w-fit">
-                                                            <Crown className="w-3 h-3" /> Pro
+                                                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-150 flex items-center gap-1 w-fit">
+                                                            <Shield className="w-3 h-3 text-teal-650" /> Pro
                                                         </span>
                                                     ) : (
                                                         <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
@@ -391,11 +391,11 @@ const AdminDashboard = () => {
                                                         onClick={() => handleTogglePremium(u.id)}
                                                         disabled={togglingUser === u.id}
                                                         className={clsx(
-                                                            "px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95",
+                                                            "px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 border",
                                                             togglingUser === u.id && "opacity-50 cursor-wait",
                                                             u.is_premium
-                                                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
-                                                                : "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+                                                                ? "bg-rose-50 text-rose-600 hover:bg-rose-100 border-rose-200"
+                                                                : "bg-teal-50 text-teal-750 hover:bg-teal-100 border-teal-200"
                                                         )}
                                                     >
                                                         {togglingUser === u.id ? '...' : u.is_premium ? 'Downgrade' : 'Upgrade Pro'}
@@ -407,20 +407,20 @@ const AdminDashboard = () => {
                                             <div className="md:hidden flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                                     <div className={clsx(
-                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0",
-                                                        u.is_premium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border",
+                                                        u.is_premium ? 'bg-teal-50 text-teal-700 border-teal-150' : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     )}>
                                                         {u.name?.charAt(0) || '?'}
                                                     </div>
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
                                                             <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
-                                                            {u.is_premium && <Crown className="w-3 h-3 text-amber-500 shrink-0" />}
+                                                            {u.is_premium && <Shield className="w-3 h-3 text-teal-650 shrink-0" />}
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-0.5">
                                                             <span className={clsx(
-                                                                "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
-                                                                u.role === 'expert' ? 'bg-teal-100 text-teal-700' : 'bg-blue-100 text-blue-700'
+                                                                "text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
+                                                                u.role === 'expert' ? 'bg-teal-50 text-teal-700 border-teal-150' : 'bg-blue-50 text-blue-700 border-blue-150'
                                                             )}>
                                                                 {u.role === 'expert' ? 'Dokter' : 'Pasien'}
                                                             </span>
@@ -432,10 +432,10 @@ const AdminDashboard = () => {
                                                     onClick={() => handleTogglePremium(u.id)}
                                                     disabled={togglingUser === u.id}
                                                     className={clsx(
-                                                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0",
+                                                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 border",
                                                         u.is_premium
-                                                            ? "bg-red-50 text-red-600 border border-red-200"
-                                                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                                                            ? "bg-rose-50 text-rose-600 border-rose-200"
+                                                            : "bg-teal-50 text-teal-755 border-teal-200"
                                                     )}
                                                 >
                                                     {togglingUser === u.id ? '...' : u.is_premium ? 'Downgrade' : 'Upgrade'}

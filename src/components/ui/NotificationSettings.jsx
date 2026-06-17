@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Trash2, Copy, Check, Loader, AlertCircle } from 'lucide-react';
+import { Bell, Trash2, Copy, Check, Loader, AlertCircle, Clock, Activity, MessageSquare, BookOpen, Wind, Send, X } from 'lucide-react';
 import { Card, Button, Badge } from './Widgets';
 
 const NotificationSettings = () => {
@@ -16,37 +16,37 @@ const NotificationSettings = () => {
       key: 'consultation_reminder',
       label: 'Pengingat Konsultasi',
       description: 'Notifikasi 1 hari & 1 jam sebelum jadwal konsultasi',
-      icon: '⏰'
+      icon: Clock
     },
     {
       key: 'screening_result',
       label: 'Hasil Skrining',
       description: 'Hasil pemeriksaan kesehatan paru Anda tersedia',
-      icon: '🫁'
+      icon: Activity
     },
     {
       key: 'doctor_message',
       label: 'Pesan dari Dokter',
       description: 'Pesan atau resep dari dokter spesialis',
-      icon: '💬'
+      icon: MessageSquare
     },
     {
       key: 'prescription_ready',
-      label: 'Resep Tersedia',
-      description: 'Notifikasi saat resep siap diambil di apotek',
-      icon: '💊'
+      label: 'Resep Obat Siap',
+      description: 'Dapatkan pemberitahuan instan saat resep obat baru diterbitkan oleh pakar.',
+      icon: Activity
     },
     {
       key: 'health_tips',
       label: 'Tips Kesehatan',
       description: 'Tips kesehatan paru mingguan',
-      icon: '📖'
+      icon: BookOpen
     },
     {
       key: 'aqi_alert',
       label: 'Alert Kualitas Udara',
       description: 'Peringatan saat kualitas udara memburuk di lokasi Anda',
-      icon: '🌫️'
+      icon: Wind
     }
   ];
 
@@ -179,13 +179,13 @@ const NotificationSettings = () => {
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <span>💬</span>
+              <Send className="w-5 h-5 text-teal-600" />
               Status Telegram
             </h3>
             {telegramStatus?.is_verified ? (
               <div className="mt-3 space-y-2">
-                <Badge className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                  ✅ Terverifikasi
+                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200/50 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                  <Check className="w-3.5 h-3.5 text-emerald-600" /> Terverifikasi
                 </Badge>
                 <p className="text-sm text-slate-600 mt-2">
                   {telegramStatus?.telegram_username && (
@@ -215,11 +215,11 @@ const NotificationSettings = () => {
               </div>
             ) : (
               <div className="mt-3">
-                <Badge className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
-                  ⚠️ Belum Terverifikasi
+                <Badge className="bg-slate-50 text-slate-600 border border-slate-200/60 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
+                  <AlertCircle className="w-3.5 h-3.5 text-slate-500" /> Belum Terhubung
                 </Badge>
                 <p className="text-sm text-slate-600 mt-2">
-                  Telegram Anda belum terhubung. Upgrade ke paket Pro atau Enterprise untuk mengaktifkan notifikasi.
+                  Telegram Anda belum terhubung. Silakan hubungkan akun Telegram Anda untuk mengaktifkan notifikasi.
                 </p>
               </div>
             )}
@@ -259,7 +259,7 @@ const NotificationSettings = () => {
 
                   <label htmlFor={notif.key} className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{notif.icon}</span>
+                      <notif.icon className="w-4 h-4 text-teal-600" />
                       <h4 className="font-semibold text-slate-900">{notif.label}</h4>
                     </div>
                     <p className="text-sm text-slate-500 mt-1">{notif.description}</p>
@@ -271,7 +271,7 @@ const NotificationSettings = () => {
             <button
               onClick={handleSavePreferences}
               disabled={saving}
-              className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving ? (
                 <>
@@ -279,22 +279,25 @@ const NotificationSettings = () => {
                   Menyimpan...
                 </>
               ) : (
-                '💾 Simpan Preferensi'
+                'Simpan Preferensi'
               )}
             </button>
           </Card>
 
           {/* Notification Log */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-6">📋 Riwayat Notifikasi</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-6">Riwayat Notifikasi</h3>
             <NotificationLog />
           </Card>
         </>
       )}
 
       {/* Help Section */}
-      <Card className="bg-amber-50/50 border border-amber-200/50 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">❓ Bantuan</h3>
+      <Card className="bg-slate-50 border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-slate-500" />
+          Bantuan
+        </h3>
         <div className="space-y-3 text-sm text-slate-600">
           <p>
             <strong>Bagaimana cara mencari Telegram User ID saya?</strong><br />
@@ -353,12 +356,12 @@ const NotificationLog = () => {
     <div className="space-y-2 max-h-64 overflow-y-auto">
       {logs.map(log => (
         <div key={log.id} className="flex items-start gap-3 p-3 bg-slate-50/50 rounded-lg text-xs">
-          <div className={`px-2 py-1 rounded font-semibold text-white ${
-            log.status === 'sent' ? 'bg-green-500' : 
-            log.status === 'failed' ? 'bg-red-500' : 
-            'bg-yellow-500'
+          <div className={`px-2 py-1 rounded font-semibold text-white flex items-center justify-center ${
+            log.status === 'sent' ? 'bg-emerald-500' : 
+            log.status === 'failed' ? 'bg-rose-500' : 
+            'bg-slate-400'
           }`}>
-            {log.status === 'sent' ? '✓' : log.status === 'failed' ? '✕' : '⏳'}
+            {log.status === 'sent' ? <Check className="w-3 h-3" /> : log.status === 'failed' ? <X className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
           </div>
           <div className="flex-1">
             <p className="font-semibold text-slate-900">{log.notification_type}</p>

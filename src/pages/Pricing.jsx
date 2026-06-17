@@ -27,9 +27,9 @@ const Pricing = () => {
         <div className="max-w-5xl mx-auto px-4 py-8">
             {/* Header */}
             <div className="text-center max-w-2xl mx-auto mb-12">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 px-4 py-1.5 rounded-full mb-6">
-                    <Crown className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-bold text-amber-700">Respira Premium</span>
+                <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200/50 px-4 py-1.5 rounded-full mb-6">
+                    <Shield className="w-4 h-4 text-teal-600" />
+                    <span className="text-sm font-bold text-teal-700">Respira Premium</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
                     Pilih Paket Terbaik untuk Kesehatan Anda
@@ -47,8 +47,8 @@ const Pricing = () => {
                     </div>
                     <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div className="space-y-2">
-                            <span className="bg-amber-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 w-fit">
-                                👑 Member Pro Aktif
+                            <span className="bg-teal-500 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                                <Shield className="w-3.5 h-3.5" /> Member Pro Aktif
                             </span>
                             <h2 className="text-2xl font-black">Terima kasih atas kepercayaan Anda pada RESPIRA!</h2>
                             <p className="text-teal-50 text-sm max-w-2xl">
@@ -169,8 +169,8 @@ const Pricing = () => {
                         : 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 text-white shadow-xl scale-[1.02] border border-slate-700 z-10'
                 }`}>
                     {isPremium ? (
-                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-                            👑 Plan Aktif Anda
+                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                            <Shield className="w-3.5 h-3.5" /> Plan Aktif Anda
                         </span>
                     ) : (
                         <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-teal-500 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
@@ -180,8 +180,8 @@ const Pricing = () => {
 
                     <div>
                         <div className="mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-amber-400/20 to-teal-400/20 rounded-2xl flex items-center justify-center mb-4 border border-white/10">
-                                <Crown className="w-6 h-6 text-amber-400" />
+                            <div className="w-12 h-12 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4 border border-white/10">
+                                <Shield className="w-6 h-6 text-teal-400" />
                             </div>
                             <h3 className="text-xl font-bold text-teal-400">Pro Plan</h3>
                             <p className="text-xs mt-1 text-slate-300">Fitur lengkap untuk pemantauan intensif dan konsultasi real-time.</p>
@@ -224,8 +224,16 @@ const Pricing = () => {
                                 : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/20 active:scale-95'
                         }`}
                     >
-                        {isPremium ? '✅ Paket Pro Aktif' : 'Upgrade ke Pro'}
-                        {!isPremium && <ArrowRight className="w-4 h-4" />}
+                        {isPremium ? (
+                            <>
+                                <Check className="w-4 h-4 text-emerald-500" /> Paket Pro Aktif
+                            </>
+                        ) : (
+                            <>
+                                Upgrade ke Pro
+                                <ArrowRight className="w-4 h-4" />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
@@ -248,7 +256,7 @@ const Pricing = () => {
                                 ) : feature.free === false ? (
                                     <X className="w-5 h-5 text-slate-300" />
                                 ) : (
-                                    <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{feature.free}</span>
+                                    <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">{feature.free}</span>
                                 )}
                             </div>
                             <div className="flex justify-center">

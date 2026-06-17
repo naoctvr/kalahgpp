@@ -198,7 +198,7 @@ const DashboardUser = () => {
                                 <div className="space-y-3 md:space-y-6">
                                     <div className="flex flex-wrap items-center gap-2">
                                         {user?.is_premium ? (
-                                            <Badge variant="teal" className="bg-gradient-to-r from-amber-500/20 to-teal-500/20 text-teal-300 border border-teal-500/40 backdrop-blur-sm px-3 py-1 text-xs md:px-4 md:py-1.5 md:text-sm font-bold flex items-center gap-1.5 animate-pulse">
+                                            <Badge variant="teal" className="bg-gradient-to-r from-teal-500/15 to-teal-500/25 text-teal-300 border border-teal-500/40 backdrop-blur-sm px-3 py-1 text-xs md:px-4 md:py-1.5 md:text-sm font-bold flex items-center gap-1.5 animate-pulse">
                                                 <Sparkles className="w-3.5 h-3.5 text-teal-400" /> RESPIRA PRO AKTIF
                                             </Badge>
                                         ) : (
@@ -210,7 +210,7 @@ const DashboardUser = () => {
                                                     onClick={() => setShowUpgradeModal(true)}
                                                     className="text-[11px] md:text-xs text-teal-400 hover:text-teal-300 font-bold underline transition"
                                                 >
-                                                    Upgrade ke Pro ⚡
+                                                    Upgrade ke Pro
                                                 </button>
                                             </>
                                         )}

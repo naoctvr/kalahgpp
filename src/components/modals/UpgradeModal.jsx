@@ -126,7 +126,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
       // Update state user secara lokal
       updateUser({ is_premium: true });
 
-      setSuccess('✅ Upgrade ke Pro berhasil! Semua fitur premium telah aktif.');
+      setSuccess('Upgrade ke Pro berhasil! Semua fitur premium telah aktif.');
       setTimeout(() => {
         onSuccess?.();
         onClose();
@@ -147,8 +147,8 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-200">
-                <Crown className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-teal-100">
+                <Shield className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900">Upgrade ke Pro</h2>
             </div>
@@ -169,7 +169,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
               key={step}
               className={`h-2 flex-1 rounded-full transition-all ${
                 step <= currentStep
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                  ? 'bg-gradient-to-r from-teal-600 to-cyan-600'
                   : 'bg-slate-200'
               }`}
             />
@@ -177,8 +177,8 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Step Indicator Text */}
-        <div className="text-sm font-semibold text-amber-600 mb-6">
-          Step {currentStep} dari 3 — {currentStep === 1 ? 'Review Fitur' : currentStep === 2 ? 'Pembayaran' : 'Telegram'}
+        <div className="text-sm font-semibold text-teal-650 mb-6">
+          Langkah {currentStep} dari 3 — {currentStep === 1 ? 'Review Fitur' : currentStep === 2 ? 'Pembayaran' : 'Hubungkan Telegram'}
         </div>
 
         {/* Alert Messages */}
@@ -200,39 +200,39 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         {currentStep === 1 && (
           <div className="space-y-6">
             {/* Price Card */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white border border-slate-700/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Pro Plan</p>
+                  <p className="text-xs font-bold text-teal-400 uppercase tracking-wider mb-1">Pro Plan</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-extrabold">Rp 49.000</span>
                     <span className="text-sm text-slate-400">/bulan</span>
                   </div>
                 </div>
-                <div className="bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 rounded-xl">
-                  <p className="text-xs font-bold text-amber-400">All-Inclusive</p>
-                  <p className="text-[10px] text-amber-300/70">Tanpa biaya tambahan</p>
+                <div className="bg-teal-500/20 border border-teal-500/30 px-3 py-1.5 rounded-xl">
+                  <p className="text-xs font-bold text-teal-400">All-Inclusive</p>
+                  <p className="text-[10px] text-teal-300/70">Tanpa biaya tambahan</p>
                 </div>
               </div>
             </div>
 
             {/* Feature List */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Fitur yang Anda dapatkan</h3>
+              <h3 className="text-sm font-bold text-slate-755 uppercase tracking-wider">Fitur yang Anda dapatkan</h3>
               {proFeatures.map((feature, idx) => (
                 <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                  feature.highlight ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'
+                  feature.highlight ? 'bg-teal-50/50 border border-teal-100' : 'bg-slate-50 border border-slate-100'
                 }`}>
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    feature.highlight ? 'bg-amber-100' : 'bg-slate-100'
+                    feature.highlight ? 'bg-teal-100' : 'bg-slate-100'
                   }`}>
-                    <feature.icon className={`w-4 h-4 ${feature.highlight ? 'text-amber-600' : 'text-slate-500'}`} />
+                    <feature.icon className={`w-4 h-4 ${feature.highlight ? 'text-teal-600' : 'text-slate-500'}`} />
                   </div>
-                  <span className={`text-sm font-medium ${feature.highlight ? 'text-amber-800' : 'text-slate-700'}`}>
+                  <span className={`text-sm font-medium ${feature.highlight ? 'text-teal-800' : 'text-slate-700'}`}>
                     {feature.text}
                   </span>
                   {feature.highlight && (
-                    <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full shrink-0">BARU</span>
+                    <span className="ml-auto text-[10px] font-bold text-teal-600 bg-teal-100 px-2 py-0.5 rounded-full shrink-0">BARU</span>
                   )}
                 </div>
               ))}
@@ -249,23 +249,23 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         {/* STEP 2: Data Pembayaran */}
         {currentStep === 2 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-slate-900">💳 Metode Pembayaran</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Metode Pembayaran</h3>
 
             <div className="space-y-3">
               {['credit_card', 'bank_transfer', 'e_wallet'].map(method => (
-                <label key={method} className="flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 transition">
+                <label key={method} className="flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-teal-300 transition-all">
                   <input
                     type="radio"
                     name="payment"
                     value={method}
                     checked={formData.paymentMethod === method}
                     onChange={(e) => setFormData(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                    className="w-4 h-4"
+                    className="w-4 h-4 accent-teal-600"
                   />
                   <span className="ml-3 font-semibold text-slate-900">
-                    {method === 'credit_card' && '💳 Kartu Kredit'}
-                    {method === 'bank_transfer' && '🏦 Transfer Bank'}
-                    {method === 'e_wallet' && '📱 E-Wallet (GoPay, OVO, Dana)'}
+                    {method === 'credit_card' && 'Kartu Kredit'}
+                    {method === 'bank_transfer' && 'Transfer Bank'}
+                    {method === 'e_wallet' && 'E-Wallet (GoPay, OVO, Dana)'}
                   </span>
                 </label>
               ))}
@@ -282,16 +282,16 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         {/* STEP 3: Telegram */}
         {currentStep === 3 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-slate-900">🔔 Aktifkan Notifikasi Telegram</h3>
+            <h3 className="text-lg font-semibold text-slate-900">Aktifkan Notifikasi Telegram</h3>
 
-            <p className="text-slate-600">
+            <p className="text-slate-655 text-sm">
               Dapatkan notifikasi real-time langsung di Telegram untuk:
             </p>
 
             <ul className="grid grid-cols-2 gap-3">
-              {['⏰ Pengingat konsultasi', '🫁 Hasil skrining', '💬 Pesan dokter', '💊 Resep tersedia', '🌫️ Alert polusi', '📖 Tips kesehatan'].map((feature, idx) => (
+              {['Pengingat konsultasi', 'Hasil skrining', 'Pesan dokter', 'Resep tersedia', 'Alert polusi', 'Tips kesehatan'].map((feature, idx) => (
                 <li key={idx} className="text-sm text-slate-700 flex items-center gap-2">
-                  <span className="text-teal-500">✓</span>
+                  <Check className="w-4 h-4 text-teal-600" />
                   {feature}
                 </li>
               ))}
@@ -299,13 +299,13 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
 
             {loading && !verificationToken ? (
               <div className="p-8 flex flex-col items-center justify-center gap-3">
-                <Loader className="w-8 h-8 text-amber-500 animate-spin" />
+                <Loader className="w-8 h-8 text-teal-500 animate-spin" />
                 <p className="text-slate-500 text-sm">Menyiapkan token verifikasi aman...</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                  <p className="text-amber-800 text-sm leading-relaxed">
+                <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl">
+                  <p className="text-teal-800 text-sm leading-relaxed">
                     Sistem kami telah menghasilkan token verifikasi aman untuk akun Anda. Klik tombol di bawah ini untuk menghubungkan bot Telegram secara otomatis.
                   </p>
                 </div>
@@ -314,13 +314,13 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
                   href={`https://t.me/healthycrm_bot?start=${verificationToken}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold rounded-xl hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-center text-base shadow-md animate-pulse"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-teal-600 via-cyan-600 to-emerald-600 text-white font-bold rounded-xl hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 text-center text-base shadow-md"
                 >
-                  ⚡ HUBUNGKAN TELEGRAM INSTAN
+                  <Send className="w-5 h-5 text-white" /> HUBUNGKAN TELEGRAM INSTAN
                 </a>
 
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center gap-3">
-                  <Loader className="w-5 h-5 text-amber-500 animate-spin" />
+                  <Loader className="w-5 h-5 text-teal-500 animate-spin" />
                   <p className="text-slate-600 text-sm font-medium">
                     Menunggu Anda menekan tombol "Start" di Telegram...
                   </p>
@@ -345,7 +345,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               onClick={handleContinue}
               disabled={currentStep === 2 && !formData.paymentMethod}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50"
             >
               Lanjutkan →
             </button>
@@ -353,7 +353,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               onClick={handleContinue}
               disabled={loading || !verificationSent}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -361,7 +361,9 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
                   Memproses...
                 </>
               ) : (
-                '✅ Selesaikan Upgrade'
+                <>
+                  <Check className="w-5 h-5" /> Selesaikan Upgrade
+                </>
               )}
             </button>
           )}

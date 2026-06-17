@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, BarChart3, Zap, Clock, AlertCircle, Check, Loader } from 'lucide-react';
+import { Send, BarChart3, Zap, Clock, AlertCircle, Check, Loader, MessageSquare, Activity, BookOpen, Wind, User, X } from 'lucide-react';
 import { Card, Button, Badge } from './Widgets';
 
 const AdminNotificationDashboard = () => {
@@ -21,12 +21,12 @@ const AdminNotificationDashboard = () => {
   });
 
   const notificationTypes = [
-    { key: 'consultation_reminder', label: '⏰ Pengingat Konsultasi' },
-    { key: 'screening_result', label: '🫁 Hasil Skrining' },
-    { key: 'doctor_message', label: '💬 Pesan dari Dokter' },
-    { key: 'prescription_ready', label: '💊 Resep Tersedia' },
-    { key: 'health_tips', label: '📖 Tips Kesehatan' },
-    { key: 'aqi_alert', label: '🌫️ Alert Kualitas Udara' }
+    { key: 'consultation_reminder', label: 'Pengingat Konsultasi' },
+    { key: 'screening_result', label: 'Hasil Skrining' },
+    { key: 'doctor_message', label: 'Pesan dari Dokter' },
+    { key: 'prescription_ready', label: 'Resep Tersedia' },
+    { key: 'health_tips', label: 'Tips Kesehatan' },
+    { key: 'aqi_alert', label: 'Alert Kualitas Udara' }
   ];
 
   // Fetch statistics
@@ -119,7 +119,7 @@ const AdminNotificationDashboard = () => {
       if (!response.ok) throw new Error('Gagal mengirim notifikasi');
 
       const data = await response.json();
-      setSuccess(`✅ Notifikasi berhasil di-queue (Job ID: ${data.jobId})`);
+      setSuccess(`Notifikasi berhasil di-queue (Job ID: ${data.jobId})`);
       setManualNotification({
         userId: '',
         notificationType: 'screening_result',
@@ -169,38 +169,38 @@ const AdminNotificationDashboard = () => {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard
           title="Notifikasi Terkirim"
           value={stats.totalSent}
-          icon="✅"
+          icon={<Check className="w-5 h-5 text-emerald-600" />}
           color="green"
         />
         <StatCard
           title="Pengguna Terverifikasi"
           value={stats.verifiedUsers}
-          icon="👤"
+          icon={<User className="w-5 h-5 text-teal-600" />}
           color="blue"
         />
         <StatCard
           title="Pending"
           value={stats.totalPending}
-          icon="⏳"
+          icon={<Clock className="w-5 h-5 text-amber-600" />}
           color="yellow"
         />
         <StatCard
           title="Gagal"
           value={stats.totalFailed}
-          icon="❌"
+          icon={<X className="w-5 h-5 text-rose-600" />}
           color="red"
         />
       </div>
 
       {/* Cron Jobs Status */}
       {cronStatus && (
-        <Card className="bg-gradient-to-br from-purple-50/50 to-blue-50/50 border border-purple-200/50 p-6">
+        <Card className="bg-gradient-to-br from-teal-50/30 to-blue-50/30 border border-teal-200/30 p-6">
           <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-4">
-            <Clock className="w-6 h-6 text-purple-500" />
+            <Clock className="w-6 h-6 text-teal-600" />
             Status Penjadwalan Otomatis
           </h3>
 
@@ -213,17 +213,25 @@ const AdminNotificationDashboard = () => {
                 </div>
                 <Badge className={`${
                   cronStatus.isRunning
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-700'
-                } px-3 py-1 rounded-full text-xs font-semibold`}>
-                  {cronStatus.isRunning ? '🟢 Aktif' : '🔴 Tidak Aktif'}
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                    : 'bg-slate-100 text-slate-500 border border-slate-200'
+                } px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1`}>
+                  {cronStatus.isRunning ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" /> Aktif
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-3.5 h-3.5" /> Tidak Aktif
+                    </>
+                  )}
                 </Badge>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg text-xs text-blue-700">
-            <strong>ℹ️ Info:</strong> Cron jobs akan mengirim notifikasi otomatis sesuai jadwal yang telah ditentukan.
+          <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
+            <strong>Info:</strong> Cron jobs akan mengirim notifikasi otomatis sesuai jadwal yang telah ditentukan.
           </div>
         </Card>
       )}
@@ -309,8 +317,11 @@ const AdminNotificationDashboard = () => {
       </Card>
 
       {/* Help Section */}
-      <Card className="bg-amber-50/50 border border-amber-200/50 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">❓ Panduan</h3>
+      <Card className="bg-slate-50 border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-slate-500" />
+          Panduan
+        </h3>
         <div className="space-y-3 text-sm text-slate-600">
           <p>
             <strong>Bagaimana cara mengirim notifikasi manual?</strong><br />
@@ -333,24 +344,24 @@ const AdminNotificationDashboard = () => {
 // Sub-component: StatCard
 const StatCard = ({ title, value, icon, color }) => {
   const bgColors = {
-    green: 'bg-green-50/50 border-green-200/50',
-    blue: 'bg-blue-50/50 border-blue-200/50',
-    yellow: 'bg-yellow-50/50 border-yellow-200/50',
-    red: 'bg-red-50/50 border-red-200/50'
+    green: 'bg-emerald-50 text-emerald-700 border-emerald-150',
+    blue: 'bg-blue-50 text-blue-700 border-blue-150',
+    yellow: 'bg-amber-50 text-amber-700 border-amber-150',
+    red: 'bg-rose-50 text-rose-700 border-rose-150'
   };
 
   const textColors = {
-    green: 'text-green-700',
-    blue: 'text-blue-700',
-    yellow: 'text-yellow-700',
-    red: 'text-red-700'
+    green: 'text-emerald-700',
+    blue: 'text-teal-700',
+    yellow: 'text-amber-700',
+    red: 'text-rose-700'
   };
 
   return (
-    <Card className={`${bgColors[color]} border p-6 text-center`}>
-      <div className="text-3xl mb-2">{icon}</div>
-      <p className={`text-3xl font-bold ${textColors[color]}`}>{value}</p>
-      <p className="text-xs text-slate-500 mt-2">{title}</p>
+    <Card className={`${bgColors[color]} border p-6 flex flex-col items-center justify-center`}>
+      <div className="mb-2 p-2 rounded-xl bg-white shadow-sm">{icon}</div>
+      <p className={`text-3xl font-black ${textColors[color]}`}>{value}</p>
+      <p className="text-xs text-slate-500 font-bold mt-2 uppercase tracking-wide">{title}</p>
     </Card>
   );
 };
