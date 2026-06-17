@@ -120,19 +120,23 @@ const LogicManager = ({ initialTree }) => {
     };
 
     const handleSave = async () => {
+        if (!window.confirm("Kirim usulan perubahan logika diagnosa ini ke admin untuk disetujui?")) return;
         setSaving(true);
         try {
             const res = await fetch(`${API_BASE}/expert/save-tree`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
                 body: JSON.stringify({ treeData: tree })
             });
             const data = await res.json();
             if (data.success) {
-                alert("Berhasil disimpan!");
+                alert("Usulan perubahan logika diagnosa berhasil diajukan ke admin!");
                 setIsDirty(false);
             } else {
-                alert("Gagal menyimpan: " + data.message);
+                alert("Gagal mengajukan perubahan: " + data.message);
             }
         } catch (err) {
             console.error(err);

@@ -736,12 +736,28 @@ app.post('/api/admin/research/review', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Aksi tidak valid.' });
         }
 
+        if (action === 'approved') {
+            const [rows] = await db.query('SELECT * FROM research_drafts WHERE id = $1', [draftId]);
+            if (rows.length > 0) {
+                const draft = rows[0];
+                const content = typeof draft.content === 'string' ? JSON.parse(draft.content) : draft.content;
+                if (content && content.type === 'logic_tree') {
+                    // Update main decision tree configuration in the database
+                    await db.query(`
+                        INSERT INTO app_config (key, value, updated_at)
+                        VALUES ('decision_tree', $1, NOW())
+                        ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()
+                    `, [JSON.stringify(content.treeData)]);
+                }
+            }
+        }
+
         await db.query(
             'UPDATE research_drafts SET status = $1 WHERE id = $2',
             [action, draftId]
         );
 
-        res.json({ success: true, message: `Riset AI berhasil di-${action === 'approved' ? 'setujui' : 'tolak'}.` });
+        res.json({ success: true, message: `Usulan riset/logika berhasil di-${action === 'approved' ? 'setujui & dirilis' : 'tolak'}.` });
     } catch (err) {
         console.error("Review Research Draft Error:", err);
         res.status(500).json({ success: false, message: 'Gagal memproses usulan riset AI.' });
@@ -763,19 +779,40 @@ app.post('/api/expert/merge', async (req, res) => {
 
 // Save Decision Tree to DB instead of filesystem
 app.post('/api/expert/save-tree', async (req, res) => {
-    const { treeData } = req.body;
     try {
-        // Upsert: update if exists, insert if not (using a single-row config table)
-        await db.query(`
-            INSERT INTO app_config (key, value, updated_at)
-            VALUES ('decision_tree', $1, NOW())
-            ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()
-        `, [JSON.stringify(treeData)]);
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        let userId = req.headers['x-user-id'] || req.body.userId;
 
-        res.json({ success: true, message: 'Decision tree saved successfully.' });
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+                userId = decoded.id;
+            } catch (err) {
+                // fallback
+            }
+        }
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized: ID Dokter tidak ditemukan.' });
+        }
+
+        const { treeData } = req.body;
+
+        const content = {
+            type: 'logic_tree',
+            treeData: treeData
+        };
+
+        await db.query(
+            'INSERT INTO research_drafts (expert_id, content, status, source_journal, created_at) VALUES ($1, $2, $3, $4, NOW())',
+            [userId, JSON.stringify(content), 'pending', 'Pembaruan Struktur Logika Diagnosa secara Manual']
+        );
+
+        res.json({ success: true, message: 'Usulan pembaruan logika diagnosa berhasil diajukan ke admin.' });
     } catch (err) {
         console.error("Save Tree Error:", err);
-        res.status(500).json({ success: false, message: 'Failed to save tree' });
+        res.status(500).json({ success: false, message: 'Gagal mengajukan usulan pembaruan logika.' });
     }
 });
 

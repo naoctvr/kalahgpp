@@ -639,14 +639,19 @@ const AdminDashboard = () => {
                                         {/* Header */}
                                         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
                                             <div className="flex items-start gap-3">
-                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${content?.type === 'symptom' ? 'bg-teal-50 text-teal-600' : 'bg-cyan-50 text-cyan-600'}`}>
-                                                    {content?.type === 'symptom' ? <GitMerge className="w-6 h-6" /> : <Brain className="w-6 h-6" />}
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${content?.type === 'logic_tree' ? 'bg-indigo-50 text-indigo-600' : content?.type === 'symptom' ? 'bg-teal-50 text-teal-600' : 'bg-cyan-50 text-cyan-600'}`}>
+                                                    {content?.type === 'logic_tree' ? <Shield className="w-6 h-6" /> : content?.type === 'symptom' ? <GitMerge className="w-6 h-6" /> : <Brain className="w-6 h-6" />}
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <h3 className="font-bold text-slate-900 text-base leading-tight">{content?.name || 'Temuan Baru'}</h3>
-                                                        <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${content?.type === 'symptom' ? 'bg-teal-50 text-teal-700' : 'bg-cyan-50 text-cyan-700'}`}>
-                                                            {content?.type === 'symptom' ? 'Gejala Baru' : 'Aturan Logika'}
+                                                        <h3 className="font-bold text-slate-900 text-base leading-tight">
+                                                            {content?.type === 'logic_tree' ? 'Pembaruan Struktur Pohon Keputusan (Decision Tree)' : (content?.name || 'Temuan Baru')}
+                                                        </h3>
+                                                        <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold uppercase tracking-wider ${
+                                                            content?.type === 'logic_tree' ? 'bg-indigo-50 text-indigo-700' :
+                                                            content?.type === 'symptom' ? 'bg-teal-50 text-teal-700' : 'bg-cyan-50 text-cyan-700'
+                                                        }`}>
+                                                            {content?.type === 'logic_tree' ? 'Struktur Logika' : content?.type === 'symptom' ? 'Gejala Baru' : 'Aturan Logika'}
                                                         </span>
                                                     </div>
                                                     <p className="text-xs text-slate-500 mt-1">
@@ -687,21 +692,35 @@ const AdminDashboard = () => {
                                         {/* Details */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-slate-100">
                                             <div className="p-6 space-y-2">
-                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bukti Klinis & Referensi Jurnal</h4>
-                                                <p className="text-sm text-slate-700 leading-relaxed">{content?.clinical_evidence}</p>
+                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    {content?.type === 'logic_tree' ? 'Deskripsi Usulan Perubahan' : 'Bukti Klinis & Referensi Jurnal'}
+                                                </h4>
+                                                <p className="text-sm text-slate-700 leading-relaxed">
+                                                    {content?.type === 'logic_tree' 
+                                                        ? 'Usulan ini berisi pembaruan struktur keputusan diagnosa (decision tree) yang dimodifikasi secara manual oleh pakar melalui editor logika.'
+                                                        : content?.clinical_evidence
+                                                    }
+                                                </p>
                                                 <div className="pt-2">
                                                     <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
-                                                        Jurnal: {d.source_journal || 'Referensi Tidak Disebutkan'}
+                                                        {content?.type === 'logic_tree' ? 'Aksi: Modifikasi Manual' : `Jurnal: ${d.source_journal || 'Referensi Tidak Disebutkan'}`}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="p-6 border-t md:border-t-0 md:border-l border-slate-100 bg-slate-50/30 space-y-3">
-                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Langkah Implementasi Logika</h4>
+                                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    {content?.type === 'logic_tree' ? 'Detail Node & Alur Logika Baru' : 'Langkah Implementasi Logika'}
+                                                </h4>
                                                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-inner">
-                                                    <p className="text-sm text-slate-800 font-semibold mb-2">{content?.suggested_action}</p>
-                                                    {content?.proposed_node && (
-                                                        <pre className="text-xs font-mono text-slate-600 bg-slate-50 p-3 rounded-lg overflow-x-auto border border-slate-100">
-                                                            {JSON.stringify(content.proposed_node, null, 2)}
+                                                    <p className="text-sm text-slate-800 font-semibold mb-2">
+                                                        {content?.type === 'logic_tree' 
+                                                            ? `Total Node: ${content?.treeData?.length || 0} Node Diagnosa`
+                                                            : content?.suggested_action
+                                                        }
+                                                    </p>
+                                                    {(content?.proposed_node || content?.treeData) && (
+                                                        <pre className="text-xs font-mono text-slate-600 bg-slate-50 p-3 rounded-lg overflow-x-auto border border-slate-100 max-h-60 overflow-y-auto">
+                                                            {JSON.stringify(content?.type === 'logic_tree' ? content?.treeData : content?.proposed_node, null, 2)}
                                                         </pre>
                                                     )}
                                                 </div>
