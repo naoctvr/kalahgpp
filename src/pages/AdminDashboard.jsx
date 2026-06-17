@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState('patient');
     const [premiumFilter, setPremiumFilter] = useState('all');
     const [togglingUser, setTogglingUser] = useState(null);
 
@@ -212,12 +212,10 @@ const AdminDashboard = () => {
                                             <Users className="w-5 h-5 text-blue-600" />
                                         </div>
                                     </div>
-                                    <p className="text-3xl font-extrabold text-slate-900">{stats.totalUsers}</p>
-                                    <p className="text-xs text-slate-500 mt-1">Total Pengguna</p>
+                                    <p className="text-3xl font-extrabold text-slate-900">{stats.totalPatients}</p>
+                                    <p className="text-xs text-slate-500 mt-1">Total Pasien</p>
                                     <div className="flex items-center gap-2 mt-2 text-xs">
-                                        <span className="text-blue-600 font-medium">{stats.totalPatients} Pasien</span>
-                                        <span className="text-slate-300">|</span>
-                                        <span className="text-teal-600 font-medium">{stats.totalExperts} Dokter</span>
+                                        <span className="text-slate-400 font-medium">Pasien terdaftar aktif</span>
                                     </div>
                                 </div>
 
@@ -232,11 +230,11 @@ const AdminDashboard = () => {
                                     <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                         <div 
                                             className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all"
-                                            style={{ width: `${stats.totalUsers > 0 ? (stats.proUsers / stats.totalUsers * 100) : 0}%` }}
+                                            style={{ width: `${stats.totalPatients > 0 ? (stats.proUsers / stats.totalPatients * 100) : 0}%` }}
                                         />
                                     </div>
                                     <p className="text-xs text-amber-600 font-medium mt-1">
-                                        {stats.totalUsers > 0 ? Math.round(stats.proUsers / stats.totalUsers * 100) : 0}% dari total
+                                        {stats.totalPatients > 0 ? Math.round(stats.proUsers / stats.totalPatients * 100) : 0}% dari total pasien
                                     </p>
                                 </div>
 
@@ -248,7 +246,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-3xl font-extrabold text-slate-900">{stats.freeUsers}</p>
                                     <p className="text-xs text-slate-500 mt-1">User Free</p>
-                                    <p className="text-xs text-slate-400 mt-2">Potensi konversi</p>
+                                    <p className="text-xs text-slate-400 mt-2">Potensi konversi pasien</p>
                                 </div>
 
                                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-sm text-white">
@@ -321,15 +319,6 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex gap-2">
                             <select
-                                value={roleFilter}
-                                onChange={(e) => setRoleFilter(e.target.value)}
-                                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
-                            >
-                                <option value="all">Semua Role</option>
-                                <option value="patient">Pasien</option>
-                                <option value="expert">Dokter</option>
-                            </select>
-                            <select
                                 value={premiumFilter}
                                 onChange={(e) => setPremiumFilter(e.target.value)}
                                 className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
@@ -343,7 +332,7 @@ const AdminDashboard = () => {
 
                     {/* Summary */}
                     <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <span>{users.length} pengguna ditemukan</span>
+                        <span>{users.length} pasien ditemukan</span>
                         {premiumFilter !== 'all' && (
                             <span className={clsx(
                                 "px-2 py-0.5 rounded-full text-xs font-medium",
@@ -368,9 +357,8 @@ const AdminDashboard = () => {
                             <>
                                 {/* Table Header */}
                                 <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                    <div className="col-span-3">Pengguna</div>
-                                    <div className="col-span-2">Role</div>
-                                    <div className="col-span-2">Status</div>
+                                    <div className="col-span-4">Pasien</div>
+                                    <div className="col-span-3">Status</div>
                                     <div className="col-span-2">Terdaftar</div>
                                     <div className="col-span-1">Aktif</div>
                                     <div className="col-span-2 text-right">Aksi</div>
@@ -382,7 +370,7 @@ const AdminDashboard = () => {
                                         <div key={u.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors">
                                             {/* Desktop Row */}
                                             <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                                                <div className="col-span-3 flex items-center gap-3 min-w-0">
+                                                <div className="col-span-4 flex items-center gap-3 min-w-0">
                                                     <div className={clsx(
                                                         "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border",
                                                         u.is_premium ? 'bg-teal-50 text-teal-700 border-teal-150' : 'bg-slate-100 text-slate-500 border-slate-200'
@@ -394,15 +382,7 @@ const AdminDashboard = () => {
                                                         <p className="text-xs text-slate-400 truncate">{u.email}</p>
                                                     </div>
                                                 </div>
-                                                <div className="col-span-2">
-                                                    <span className={clsx(
-                                                        "text-xs font-medium px-2.5 py-1 rounded-full",
-                                                        u.role === 'expert' ? 'bg-teal-50 text-teal-700 border border-teal-150' : 'bg-blue-50 text-blue-700 border border-blue-150'
-                                                    )}>
-                                                        {u.role === 'expert' ? 'Dokter' : 'Pasien'}
-                                                    </span>
-                                                </div>
-                                                <div className="col-span-2">
+                                                <div className="col-span-3">
                                                     {u.is_premium ? (
                                                         <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-150 flex items-center gap-1 w-fit">
                                                             <Shield className="w-3 h-3 text-teal-650" /> Pro
@@ -463,13 +443,7 @@ const AdminDashboard = () => {
                                                             {u.is_premium && <Shield className="w-3 h-3 text-teal-650 shrink-0" />}
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-0.5">
-                                                            <span className={clsx(
-                                                                "text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
-                                                                u.role === 'expert' ? 'bg-teal-50 text-teal-700 border-teal-150' : 'bg-blue-50 text-blue-700 border-blue-150'
-                                                            )}>
-                                                                {u.role === 'expert' ? 'Dokter' : 'Pasien'}
-                                                            </span>
-                                                            <span className="text-[10px] text-slate-400">{formatDate(u.created_at)}</span>
+                                                            <span className="text-[10px] text-slate-400">Terdaftar: {formatDate(u.created_at)}</span>
                                                         </div>
                                                     </div>
                                                 </div>
