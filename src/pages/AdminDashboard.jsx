@@ -214,9 +214,9 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
                                     <p className="text-3xl font-extrabold text-slate-900">{stats.totalPatients}</p>
-                                    <p className="text-xs text-slate-500 mt-1">Total Pasien</p>
+                                    <p className="text-xs text-slate-500 mt-1">Total User</p>
                                     <div className="flex items-center gap-2 mt-2 text-xs">
-                                        <span className="text-slate-400 font-medium">Pasien terdaftar aktif</span>
+                                        <span className="text-slate-400 font-medium">User terdaftar aktif</span>
                                     </div>
                                 </div>
 
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
                                         />
                                     </div>
                                     <p className="text-xs text-amber-600 font-medium mt-1">
-                                        {stats.totalPatients > 0 ? Math.round(stats.proUsers / stats.totalPatients * 100) : 0}% dari total pasien
+                                        {stats.totalPatients > 0 ? Math.round(stats.proUsers / stats.totalPatients * 100) : 0}% dari total user
                                     </p>
                                 </div>
 
@@ -247,7 +247,7 @@ const AdminDashboard = () => {
                                     </div>
                                     <p className="text-3xl font-extrabold text-slate-900">{stats.freeUsers}</p>
                                     <p className="text-xs text-slate-500 mt-1">User Free</p>
-                                    <p className="text-xs text-slate-400 mt-2">Potensi konversi pasien</p>
+                                    <p className="text-xs text-slate-400 mt-2">Potensi konversi user</p>
                                 </div>
 
                                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-sm text-white">
@@ -270,9 +270,9 @@ const AdminDashboard = () => {
                                     <div>
                                         <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                                             <BarChart3 className="w-5 h-5 text-teal-600" />
-                                            Tren Pertumbuhan Pasien Premium (8 Minggu Terakhir)
+                                            Tren Pertumbuhan User Premium (8 Minggu Terakhir)
                                         </h3>
-                                        <p className="text-xs text-slate-500 mt-1">Akumulasi pertumbuhan pasien yang beralih ke layanan Pro per minggu</p>
+                                        <p className="text-xs text-slate-500 mt-1">Akumulasi pertumbuhan user yang beralih ke layanan Pro per minggu</p>
                                     </div>
                                     <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100">
                                         Tren Mingguan
@@ -347,7 +347,7 @@ const AdminDashboard = () => {
                                                                         textAnchor="middle" 
                                                                         className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                                                     >
-                                                                        {item.count} Pasien
+                                                                        {item.count} User
                                                                     </text>
 
                                                                     {/* Main Bar */}
