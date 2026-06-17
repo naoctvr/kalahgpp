@@ -36,6 +36,8 @@ const Pricing = () => {
         { name: 'Kamus penyakit pernapasan', free: true, pro: true },
         { name: 'Skor harian paru-paru', free: true, pro: true },
         { name: 'Riwayat diagnosa', free: '5 terakhir', pro: 'Unlimited' },
+        { name: 'Konsultasi tatap muka gratis', free: '2x / bulan', pro: 'Unlimited' },
+        { name: 'Temu dokter lanjutan', free: 'Berbayar per temu', pro: 'Gratis penuh' },
         { name: 'Chat langsung dengan dokter', free: false, pro: true },
         { name: 'Booking konsultasi dokter', free: false, pro: true },
         { name: 'Prioritas antrean konsultasi', free: false, pro: true },
@@ -154,7 +156,7 @@ const Pricing = () => {
                             {[
                                 'Diagnosa mandiri harian (AI)',
                                 'Akses artikel & tips kesehatan',
-                                'Riwayat diagnosa terbatas (5 data terakhir)',
+                                'Konsultasi tatap muka gratis 2x / bulan',
                                 'Kamus penyakit pernapasan',
                                 'Skor harian kesehatan paru',
                             ].map((feature, idx) => (
@@ -164,8 +166,9 @@ const Pricing = () => {
                                 </li>
                             ))}
                             {[
+                                'Temu lanjutan berbayar per pertemuan',
                                 'Chat langsung dengan dokter',
-                                'Booking konsultasi',
+                                'Booking konsultasi unlimited',
                                 'Notifikasi Telegram',
                             ].map((feature, idx) => (
                                 <li key={`locked-${idx}`} className="flex items-start gap-2.5 text-sm">
@@ -218,8 +221,9 @@ const Pricing = () => {
                         <ul className="space-y-3 mb-8">
                             {[
                                 'Semua fitur Free Plan',
+                                'Konsultasi tatap muka gratis tanpa batas',
                                 'Live Chat Unlimited dengan Dokter',
-                                'Booking konsultasi tanpa batas',
+                                'Booking konsultasi prioritas gratis',
                                 'Prioritas antrean konsultasi',
                                 'Notifikasi & Laporan Harian via Telegram',
                                 'Pengingat minum obat otomatis',
