@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
 import DashboardUser from './DashboardUser';
 import DashboardExpert from './DashboardExpert';
-import { Users, Shield } from 'lucide-react';
 
 const Dashboard = () => {
-    // SIMULATION: Change this state to toggle views
-    const [userRole, setUserRole] = useState('user'); // 'user' or 'expert'
+    const { user } = useAuth();
 
     return (
         <div className="relative">
-            {/* Role Switcher Removed as per directive */}
-
             {/* Render Dashboard based on Role */}
-            {userRole === 'user' ? <DashboardUser /> : <DashboardExpert />}
+            {user?.role === 'expert' ? <DashboardExpert /> : <DashboardUser />}
         </div>
     );
 };

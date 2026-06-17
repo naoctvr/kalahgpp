@@ -1,10 +1,14 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const db = require('./config/db');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const telegramRoutes = require('./routes/telegram');
+const cronScheduler = require('./workers/CronJobScheduler');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -33,6 +37,9 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// --- TELEGRAM ROUTES ---
+app.use('/api/telegram', telegramRoutes);
+
 // --- AUTH ROUTES ---
 
 app.post('/api/register', async (req, res) => {
@@ -47,7 +54,8 @@ app.post('/api/register', async (req, res) => {
             [name, email, password, role, licenseCode]
         );
         const newUser = { id: result[0].id, name, email, role };
-        res.json({ success: true, user: newUser });
+        const token = jwt.sign({ id: newUser.id, role: newUser.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '30d' });
+        res.json({ success: true, user: newUser, token });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server Error' });
@@ -61,13 +69,129 @@ app.post('/api/login', async (req, res) => {
         if (users.length > 0) {
             const user = users[0];
             const { password: _pw, ...userData } = user;
-            res.json({ success: true, user: userData });
+            const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '30d' });
+            res.json({ success: true, user: userData, token });
         } else {
             res.status(401).json({ success: false, message: 'Email atau password salah.' });
         }
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// --- USER UPGRADE ROUTE ---
+app.post('/api/user/upgrade', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        let userId = req.body.userId || req.headers['x-user-id'];
+
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+                userId = decoded.id;
+            } catch (err) {
+                // Gunakan fallback
+            }
+        }
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized: User ID tidak ditemukan' });
+        }
+
+        // Update is_premium di tabel users
+        await db.query(
+            'UPDATE users SET is_premium = true WHERE id = $1',
+            [userId]
+        );
+
+        res.json({ success: true, message: 'Upgrade berhasil!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// --- MEDICATION REMINDERS ROUTES ---
+
+// 1. Get all medications for a user
+app.get('/api/medications/:userId', async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [rows] = await db.query(
+            'SELECT * FROM medication_reminders WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// 2. Add new medication reminder
+app.post('/api/medications', async (req, res) => {
+    const { user_id, medicine_name, dosage, frequency, times, start_date, end_date } = req.body;
+    try {
+        const [result] = await db.query(
+            `INSERT INTO medication_reminders (user_id, medicine_name, dosage, frequency, times, start_date, end_date) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [user_id, medicine_name, dosage, frequency, times, start_date || new Date(), end_date || null]
+        );
+        res.json({ success: true, data: result[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// 3. Delete medication reminder
+app.delete('/api/medications/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query('DELETE FROM medication_reminders WHERE id = $1', [id]);
+        res.json({ success: true, message: 'Pengingat obat berhasil dihapus' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+});
+
+// 4. Trigger test notification to Telegram instantly!
+app.post('/api/medications/:id/trigger', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [reminders] = await db.query('SELECT * FROM medication_reminders WHERE id = $1', [id]);
+        if (reminders.length === 0) {
+            return res.status(404).json({ success: false, message: 'Pengingat obat tidak ditemukan' });
+        }
+        const reminder = reminders[0];
+
+        // Dapatkan data Telegram user
+        const [teleUsers] = await db.query(
+            'SELECT telegram_user_id FROM user_telegram WHERE user_id = $1 AND is_verified = true',
+            [reminder.user_id]
+        );
+
+        if (teleUsers.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Telegram belum terhubung. Silakan hubungkan Telegram terlebih dahulu!' 
+            });
+        }
+
+        const telegramUserId = teleUsers[0].telegram_user_id;
+        const TelegramService = require('./services/TelegramService');
+
+        // Format pesan pengingat obat
+        const message = `💊 *PENGINGAT MINUM OBAT (RESPIRA.ID)*\n\nHalo! Sudah waktunya untuk meminum obat Anda:\n\n📦 Obat: *${reminder.medicine_name}*\n📐 Dosis: *${reminder.dosage}*\n🔄 Frekuensi: *${reminder.frequency}*\n⏰ Jam Jadwal: *${reminder.times}*\n\nSilakan minum obat Anda tepat waktu untuk mempercepat pemulihan pernapasan Anda.`;
+
+        await TelegramService.sendMessage(telegramUserId, message);
+        res.json({ success: true, message: 'Notifikasi obat berhasil dikirim ke Telegram!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
@@ -415,7 +539,7 @@ app.get('/api/admin/stats', async (req, res) => {
 app.get('/api/admin/history/all', async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT d.id, d.created_at, u.name as patient_name, d.final_result, d.confidence_score
+            SELECT d.id, d.user_id, d.created_at, u.name as patient_name, d.final_result, d.confidence_score
             FROM diagnosis_logs d
             LEFT JOIN users u ON d.user_id = u.id
             ORDER BY d.created_at DESC
@@ -423,6 +547,7 @@ app.get('/api/admin/history/all', async (req, res) => {
 
         const formattedRows = rows.map(row => ({
             id: row.id,
+            user_id: row.user_id,
             requested_date: row.created_at ? new Date(row.created_at).toISOString().replace('T', ' ').substring(0, 19) : new Date().toISOString(),
             patient_name: row.patient_name || 'Unknown User',
             diagnosis_result: row.final_result,
@@ -716,6 +841,55 @@ app.post('/api/expert/appointments/respond', async (req, res) => {
     }
 });
 
+app.post('/api/expert/appointments/complete', async (req, res) => {
+    const { appointmentId, patientId } = req.body;
+    try {
+        // 1. Ubah status konsultasi ke 'completed'
+        await db.query(
+            "UPDATE consultations SET status = 'completed' WHERE id = $1",
+            [appointmentId]
+        );
+
+        // 2. Ambil seluruh resep obat aktif milik pasien ini
+        const [medications] = await db.query(
+            "SELECT * FROM medication_reminders WHERE user_id = $1 ORDER BY created_at DESC",
+            [patientId]
+        );
+
+        // 3. Dapatkan data Telegram user
+        const [teleUsers] = await db.query(
+            'SELECT telegram_user_id FROM user_telegram WHERE user_id = $1 AND is_verified = true',
+            [patientId]
+        );
+
+        if (teleUsers.length > 0 && medications.length > 0) {
+            const telegramUserId = teleUsers[0].telegram_user_id;
+            const TelegramService = require('./services/TelegramService');
+
+            // Susun pesan ringkasan resep obat
+            let medListStr = '';
+            medications.forEach((med, idx) => {
+                medListStr += `\n${idx + 1}. *${med.medicine_name}*
+   📐 Dosis: *${med.dosage}*
+   ⏰ Jam Jadwal: *${med.times}* (${med.frequency})\n`;
+            });
+
+            const message = `📋 *RESEP OBAT SELESAI KONSULTASI*
+
+Halo! Konsultasi Anda telah selesai. Berikut adalah daftar resep obat yang harus Anda minum sesuai anjuran Dokter:
+${medListStr}
+Sistem akan otomatis mengirimkan push notification pengingat minum obat sesuai jadwal di atas. Semoga lekas sembuh!`;
+
+            await TelegramService.sendMessage(telegramUserId, message);
+        }
+
+        res.json({ success: true, message: 'Konsultasi berhasil diselesaikan dan resep terkirim!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Gagal menyelesaikan sesi: ' + err.message });
+    }
+});
+
 app.post('/api/consultations/cancel', async (req, res) => {
     const { id } = req.body;
     try {
@@ -729,4 +903,10 @@ app.post('/api/consultations/cancel', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    // Start CronJob Scheduler for Consultation Reminders, AQI Alerts, and Health Tips
+    cronScheduler.start();
+    
+    // Start Telegram Bot Long Polling for local verification handling
+    const TelegramService = require('./services/TelegramService');
+    TelegramService.startPolling();
 });

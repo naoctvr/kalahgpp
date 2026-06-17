@@ -52,7 +52,7 @@ const ResultActionPlan = ({ severity }) => {
                         <span className="text-xs font-medium px-2 py-1 bg-white border rounded text-slate-600">1x Sehari</span>
                     </div>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-3 italic text-center">
+                <p className="text-xs text-slate-400 mt-3 italic text-center">
                     *Konsultasikan dengan apoteker sebelum membeli obat
                 </p>
             </div>

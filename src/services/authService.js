@@ -14,6 +14,9 @@ export const authService = {
 
             if (result.success) {
                 localStorage.setItem('user', JSON.stringify(result.user));
+                if (result.token) {
+                    localStorage.setItem('token', result.token);
+                }
                 return { success: true, user: result.user };
             } else {
                 return { success: false, message: result.message || 'Login gagal.' };
@@ -37,6 +40,9 @@ export const authService = {
 
             if (result.success) {
                 localStorage.setItem('user', JSON.stringify(result.user));
+                if (result.token) {
+                    localStorage.setItem('token', result.token);
+                }
                 return { success: true, user: result.user };
             } else {
                 return { success: false, message: result.message || 'Registrasi gagal.' };
@@ -51,6 +57,7 @@ export const authService = {
     // LOGOUT
     logout: () => {
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
     },
 
     // GET CURRENT USER

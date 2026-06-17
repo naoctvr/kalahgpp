@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Save, X, Check, Plus, FileText } from 'lucide-react';
+import { Sparkles, Save, X, Check, Plus, FileText, Bell } from 'lucide-react';
 import clsx from 'clsx';
+import AdminNotificationDashboard from '../components/ui/AdminNotificationDashboard';
 
 const AdminDashboard = () => {
+    const [activeTab, setActiveTab] = useState('logic');
     const [topic, setTopic] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [generatedLogic, setGeneratedLogic] = useState(null);
@@ -39,7 +41,35 @@ const AdminDashboard = () => {
                 <Sparkles className="absolute right-8 top-8 w-32 h-32 text-white/10 rotate-12" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Tabs Switcher */}
+            <div className="flex border-b border-slate-200 gap-2 mb-6">
+                <button
+                    onClick={() => setActiveTab('logic')}
+                    className={clsx(
+                        "pb-3 px-4 font-semibold text-sm transition-all border-b-2",
+                        activeTab === 'logic'
+                            ? "border-blue-600 text-blue-600 font-bold"
+                            : "border-transparent text-slate-500 hover:text-slate-800"
+                    )}
+                >
+                    Logika Medis & Riset
+                </button>
+                <button
+                    onClick={() => setActiveTab('crm')}
+                    className={clsx(
+                        "pb-3 px-4 font-semibold text-sm transition-all border-b-2",
+                        activeTab === 'crm'
+                            ? "border-blue-600 text-blue-600 font-bold"
+                            : "border-transparent text-slate-500 hover:text-slate-800"
+                    )}
+                >
+                    Monitoring CRM & Notifikasi
+                </button>
+            </div>
+
+            {activeTab === 'logic' ? (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Input Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h3 className="font-bold text-slate-900 mb-4 flex items-center">
@@ -160,6 +190,10 @@ const AdminDashboard = () => {
                     ))}
                 </div>
             </div>
+            </>
+            ) : (
+                <AdminNotificationDashboard />
+            )}
         </div>
     );
 };

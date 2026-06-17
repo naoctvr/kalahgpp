@@ -5,16 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import BookingModal from '../components/modals/BookingModal';
+import PrescribeMedicationModal from '../components/modals/PrescribeMedicationModal';
 import { Card, Badge, Button, cn } from '../components/ui/Widgets';
 
 const Konsultasi = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState([]);
+    const [diagnosisHistory, setDiagnosisHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showBookingModal, setShowBookingModal] = useState(false);
+    
+    // State untuk resep obat saat penyelesaian sesi
+    const [selectedMedAppointment, setSelectedMedAppointment] = useState(null);
+    const [isMedModalOpen, setIsMedModalOpen] = useState(false);
 
-    const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'history'
+    const [activeTab, setActiveTab] = useState('upcoming');
 
     const fetchAppointments = async () => {
         if (!user) return;
@@ -26,9 +32,12 @@ const Konsultasi = () => {
             } else {
                 res = await api.getPatientAppointments(user.id);
             }
+            if (res.success) setAppointments(res.data);
 
-            if (res.success) {
-                setAppointments(res.data);
+            // Fetch diagnosis history for booking modal
+            if (user.role === 'patient') {
+                const histRes = await api.getHistory(user.id);
+                if (histRes.success) setDiagnosisHistory(histRes.data);
             }
         } catch (error) {
             console.error("Failed to fetch appointments", error);
@@ -74,12 +83,12 @@ const Konsultasi = () => {
     };
 
     return (
-        <div className="max-w-[1200px] mx-auto p-6 space-y-6">
+        <div className="max-w-[1200px] mx-auto p-6 space-y-6 overflow-x-hidden">
             <BookingModal
                 isOpen={showBookingModal}
                 onClose={() => setShowBookingModal(false)}
                 userId={user?.id}
-                history={[]} // Optional: Pass history if needed
+                history={diagnosisHistory} // Riwayat diagnosa user
                 onSuccess={() => {
                     fetchAppointments();
                     setShowBookingModal(false);
@@ -107,11 +116,11 @@ const Konsultasi = () => {
             </div>
 
             {/* TAB CONTROLS */}
-            <div className="flex p-1 bg-slate-100 rounded-xl w-fit">
+            <div className="flex p-1 bg-slate-100 rounded-xl w-full md:w-fit">
                 <button
                     onClick={() => setActiveTab('upcoming')}
                     className={cn(
-                        "px-6 py-2 rounded-lg text-sm font-medium transition-all",
+                        "px-6 py-2 rounded-lg text-sm font-medium transition-all w-full md:w-auto",
                         activeTab === 'upcoming' ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
                     )}
                 >
@@ -120,7 +129,7 @@ const Konsultasi = () => {
                 <button
                     onClick={() => setActiveTab('history')}
                     className={cn(
-                        "px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                        "px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 w-full md:w-auto",
                         activeTab === 'history' ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
                     )}
                 >
@@ -147,108 +156,132 @@ const Konsultasi = () => {
                         const time = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                         const isExpert = user?.role === 'expert';
 
+                        const statusConfig = {
+                            approved: { label: 'Dikonfirmasi', cls: 'bg-emerald-100 text-emerald-700' },
+                            rejected: { label: 'Ditolak', cls: 'bg-red-100 text-red-700' },
+                            cancelled: { label: 'Dibatalkan', cls: 'bg-slate-100 text-slate-500' },
+                            pending: { label: 'Menunggu', cls: 'bg-amber-100 text-amber-700' },
+                        };
+                        const status = statusConfig[appt.status] || statusConfig.pending;
+
                         return (
-                            <div key={appt.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-6 group">
-                                {/* Date Box */}
-                                <div className="flex-shrink-0">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex flex-col items-center justify-center border border-blue-100 text-blue-600">
-                                        <span className="text-xl font-bold leading-none">{day}</span>
-                                        <span className="text-xs font-bold uppercase mt-1">{month}</span>
-                                    </div>
-                                </div>
-
-                                {/* Main Info */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                                        <h3 className="font-bold text-slate-800 text-lg truncate">
-                                            {isExpert
-                                                ? appt.patient_name
-                                                : `dr. ${appt.doctor_name}${appt.doctor_title ? `, ${appt.doctor_title}` : ''}`
-                                            }
-                                        </h3>
-                                        <Badge variant={
-                                            appt.status === 'approved' ? 'success' :
-                                                (appt.status === 'rejected' || appt.status === 'cancelled') ? 'danger' : 'warning'
-                                        } className="min-w-[180px] justify-center text-center px-4 py-1.5">
-                                            {appt.status === 'approved' ? 'Dikonfirmasi' :
-                                                appt.status === 'rejected' ? 'Ditolak Dokter' :
-                                                    appt.status === 'cancelled' ? 'Dibatalkan' : 'Menunggu Konfirmasi'}
-                                        </Badge>
+                            <div key={appt.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                {/* Main row */}
+                                <div className="flex items-center gap-3 p-4">
+                                    {/* Date box */}
+                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex flex-col items-center justify-center border border-blue-100 text-blue-600 shrink-0">
+                                        <span className="text-base font-bold leading-none">{day}</span>
+                                        <span className="text-[10px] font-bold uppercase">{month}</span>
                                     </div>
 
-                                    <div className="flex items-center gap-4 text-sm text-slate-500 mb-3">
-                                        <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg">
-                                            <Clock size={14} className="text-slate-400" />
-                                            {time} WIB
-                                        </span>
-                                        {!isExpert && (
-                                            <span className="flex items-center gap-1.5">
-                                                <User size={14} className="text-slate-400" />
-                                                {appt.doctor_title || 'Sp.P'}
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="font-bold text-slate-800 text-sm truncate flex-1 min-w-0">
+                                                {isExpert ? appt.patient_name : `dr. ${appt.doctor_name}${appt.doctor_title ? `, ${appt.doctor_title}` : ''}`}
+                                            </h3>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap ${status.cls}`}>
+                                                {status.label}
                                             </span>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                                            <span className="flex items-center gap-1">
+                                                <Clock size={11} />
+                                                {time} WIB
+                                            </span>
+                                            {!isExpert && appt.doctor_title && (
+                                                <span className="flex items-center gap-1">
+                                                    <User size={11} />
+                                                    {appt.doctor_title}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {appt.notes && (
+                                            <p className="text-xs text-slate-500 mt-1 truncate italic">"{appt.notes}"</p>
                                         )}
                                     </div>
 
-                                    {/* Notes / Diagnosis */}
-                                    {isExpert && appt.diagnosis_result && (
-                                        <div className="mb-3">
-                                            <Badge variant="teal" className="bg-teal-50 text-teal-700 border border-teal-200">
-                                                Diagnosa: {appt.diagnosis_result} ({appt.confidence_score}%)
-                                            </Badge>
-                                        </div>
-                                    )}
-                                    {appt.notes && (
-                                        <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 italic">
-                                            "{appt.notes}"
-                                        </p>
-                                    )}
+                                    {/* Action button */}
+                                    <div className="shrink-0 flex items-center gap-2">
+                                        {appt.status === 'approved' && (
+                                            <>
+                                                {isExpert && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedMedAppointment(appt);
+                                                            setIsMedModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1 active:scale-95"
+                                                        title="Selesaikan Konsultasi & Resepkan Obat"
+                                                    >
+                                                        <CheckCircle size={18} />
+                                                        <span className="text-xs font-bold px-1">Selesai</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleChat(isExpert ? appt.user_id : appt.doctor_id)}
+                                                    className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
+                                                    title="Mulai Chat"
+                                                >
+                                                    <MessageSquare size={18} />
+                                                </button>
+                                            </>
+                                        )}
+                                        {!isExpert && appt.status === 'pending' && (
+                                            <button
+                                                onClick={() => handleCancelAppointment(appt.id)}
+                                                className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors"
+                                            >
+                                                <XCircle size={18} />
+                                            </button>
+                                        )}
+                                        {isExpert && appt.status === 'pending' && (
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => handleStatusUpdate(appt.id, 'approved')}
+                                                    className="p-2 bg-teal-50 text-teal-600 rounded-xl hover:bg-teal-100 transition-colors"
+                                                >
+                                                    <CheckCircle size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusUpdate(appt.id, 'rejected')}
+                                                    className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors"
+                                                >
+                                                    <XCircle size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="flex flex-row md:flex-col justify-center gap-2 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 md:w-[220px] flex-shrink-0">
-                                    {appt.status === 'approved' && (
-                                        <Button
-                                            onClick={() => handleChat(isExpert ? appt.user_id : appt.doctor_id)}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl flex items-center justify-center gap-2 w-full md:w-auto"
-                                        >
-                                            <MessageSquare size={16} />
-                                            Chat
-                                        </Button>
-                                    )}
-
-                                    {!isExpert && appt.status === 'pending' && (
-                                        <Button
-                                            onClick={() => handleCancelAppointment(appt.id)}
-                                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 text-sm px-4 py-2 rounded-xl flex items-center justify-center gap-2 w-full md:w-auto transition-colors"
-                                        >
-                                            <XCircle size={16} />
-                                            Batalkan
-                                        </Button>
-                                    )}
-
-                                    {isExpert && appt.status === 'pending' && (
-                                        <>
-                                            <Button
-                                                onClick={() => handleStatusUpdate(appt.id, 'approved')}
-                                                className="bg-teal-600 hover:bg-teal-700 text-white text-sm px-4 py-2 rounded-xl w-full md:w-auto"
-                                            >
-                                                Terima
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => handleStatusUpdate(appt.id, 'rejected')}
-                                                className="text-red-600 border-red-200 hover:bg-red-50 text-sm px-4 py-2 rounded-xl w-full md:w-auto"
-                                            >
-                                                Tolak
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
+                                {/* Expert diagnosis badge */}
+                                {isExpert && appt.diagnosis_result && (
+                                    <div className="px-4 pb-3">
+                                        <span className="text-xs bg-teal-50 text-teal-700 border border-teal-100 px-2 py-1 rounded-lg">
+                                            {appt.diagnosis_result} ({appt.confidence_score}%)
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         );
                     })
                 )}
             </div>
+
+            {/* Modal Resep Obat saat Menyelesaikan Konsultasi */}
+            <PrescribeMedicationModal
+                isOpen={isMedModalOpen}
+                onClose={() => {
+                    setIsMedModalOpen(false);
+                    setSelectedMedAppointment(null);
+                }}
+                patientId={selectedMedAppointment?.user_id}
+                patientName={selectedMedAppointment?.patient_name}
+                appointmentId={selectedMedAppointment?.id}
+                onCompleteSuccess={() => {
+                    fetchAppointments();
+                }}
+            />
         </div>
     );
 };

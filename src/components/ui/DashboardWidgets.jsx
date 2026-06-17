@@ -140,7 +140,7 @@ export const AQICard = ({ data, onRefresh }) => {
 };
 
 // --- 3. PROFILE MINI CARD ---
-export const ProfileMiniCard = ({ profile, name, email, onEdit }) => {
+export const ProfileMiniCard = ({ profile, name, email, onEdit, isPremium, onUpgrade }) => {
     const { blood_type, height, weight } = profile || {};
     const isComplete = blood_type && height && weight;
 
@@ -148,13 +148,34 @@ export const ProfileMiniCard = ({ profile, name, email, onEdit }) => {
         <Card className="h-full p-6 flex flex-col bg-white border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Profil Singkat</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-slate-500 text-xs font-bold uppercase tracking-wider">Profil Singkat</h3>
+                        {isPremium ? (
+                            <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                PRO
+                            </span>
+                        ) : (
+                            <span className="bg-slate-100 text-slate-500 font-bold text-[9px] px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                FREE
+                            </span>
+                        )}
+                    </div>
                     <p className="font-bold text-slate-800 text-lg truncate max-w-[180px]">{name || 'User'}</p>
                     <p className="text-[10px] text-slate-400 truncate max-w-[120px]">{email || '-'}</p>
                 </div>
-                <button onClick={onEdit} className="text-slate-400 hover:text-blue-600 transition-colors p-1 hover:bg-slate-50 rounded-lg">
-                    <Edit size={16} />
-                </button>
+                <div className="flex items-center gap-1">
+                    {!isPremium && onUpgrade && (
+                        <button
+                            onClick={onUpgrade}
+                            className="bg-teal-50 hover:bg-teal-100 text-teal-600 font-semibold text-[10px] px-2 py-1 rounded-lg transition-colors border border-teal-200/50"
+                        >
+                            Upgrade
+                        </button>
+                    )}
+                    <button onClick={onEdit} className="text-slate-400 hover:text-blue-600 transition-colors p-1 hover:bg-slate-50 rounded-lg">
+                        <Edit size={16} />
+                    </button>
+                </div>
             </div>
 
             {isComplete ? (

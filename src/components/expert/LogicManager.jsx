@@ -10,6 +10,7 @@ const LogicManager = ({ initialTree }) => {
     const [selectedNode, setSelectedNode] = useState(null);
     const [isDirty, setIsDirty] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [mobilePanel, setMobilePanel] = useState('sidebar'); // 'sidebar' | 'editor'
 
     // --- LEVEL CALCULATION ALGORITHM ---
     useEffect(() => {
@@ -76,6 +77,7 @@ const LogicManager = ({ initialTree }) => {
 
     const handleNodeClick = (node) => {
         setSelectedNode(node);
+        setMobilePanel('editor'); // auto-switch to editor on mobile
     };
 
     const handleUpdateNode = (updatedNode) => {
@@ -141,238 +143,256 @@ const LogicManager = ({ initialTree }) => {
     };
 
     return (
-        <div className="flex h-[80vh] bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
-            {/* LEFT SIDEBAR: LEVELS & NODES */}
-            <div className="w-1/3 border-r border-slate-200 bg-white overflow-y-auto">
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                    <h2 className="font-bold text-slate-800">Struktur Logika</h2>
-                    <button onClick={handleAddNode} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
-                        <Plus className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <div className="p-2 space-y-2">
-                    {Object.keys(levels).map(level => (
-                        <div key={level} className="border border-slate-100 rounded-lg overflow-hidden">
-                            <button
-                                onClick={() => handleToggleLevel(level)}
-                                className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-                            >
-                                <span className="font-semibold text-slate-700 text-sm uppercase tracking-wider">
-                                    {level === 'orphaned' ? 'Unlinked / Orphaned' : `Level ${level}`}
-                                </span>
-                                {expandedLevels[level] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                            </button>
-
-                            {expandedLevels[level] && (
-                                <div className="bg-white p-2 space-y-1">
-                                    {levels[level].map(node => (
-                                        <button
-                                            key={node.id}
-                                            onClick={() => handleNodeClick(node)}
-                                            className={`w-full text-left p-2 rounded-md text-sm flex items-center space-x-2 ${selectedNode?.id === node.id ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'hover:bg-slate-50 text-slate-600'}`}
-                                        >
-                                            <div className={`w-2 h-2 rounded-full ${node.type === 'result' ? 'bg-green-400' : 'bg-blue-400'}`}></div>
-                                            <span className="truncate font-medium">{node.id}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
+        <div className="flex flex-col bg-slate-50 border border-slate-200 rounded-xl overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+            {/* MOBILE: Tab toggle between sidebar and editor */}
+            <div className="md:hidden flex border-b border-slate-200 bg-white">
+                <button
+                    onClick={() => setMobilePanel('sidebar')}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${mobilePanel === 'sidebar' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500'}`}
+                >
+                    Struktur Logika
+                </button>
+                <button
+                    onClick={() => setMobilePanel('editor')}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${mobilePanel === 'editor' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500'}`}
+                >
+                    {selectedNode ? `Edit: ${selectedNode.id}` : 'Editor'}
+                </button>
             </div>
 
-            {/* RIGHT PANEL: EDITOR */}
-            <div className="flex-1 flex flex-col bg-slate-50">
-                {/* TOOLBAR */}
-                <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-                    <div className="flex items-center space-x-2">
-                        {isDirty && <span className="text-amber-600 text-sm font-medium flex items-center"><AlertTriangle className="w-4 h-4 mr-1" /> Perubahan belum disimpan</span>}
+            <div className="flex flex-1 overflow-hidden">
+                {/* LEFT SIDEBAR: LEVELS & NODES */}
+                <div className={`${mobilePanel === 'sidebar' ? 'flex' : 'hidden'} md:flex w-full md:w-1/3 border-r border-slate-200 bg-white overflow-y-auto flex-col`}>
+                    <div className="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+                        <h2 className="font-bold text-slate-800 text-sm md:text-base">Struktur Logika</h2>
+                        <button onClick={handleAddNode} className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 min-w-[36px] min-h-[36px] flex items-center justify-center">
+                            <Plus className="w-5 h-5" />
+                        </button>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={!isDirty || saving}
-                        className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${isDirty ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-                    >
-                        {saving ? 'Menyimpan...' : <><Save className="w-4 h-4 mr-2" /> Simpan Perubahan</>}
-                    </button>
+
+                    <div className="p-2 space-y-2 flex-1 overflow-y-auto">
+                        {Object.keys(levels).map(level => (
+                            <div key={level} className="border border-slate-100 rounded-lg overflow-hidden">
+                                <button
+                                    onClick={() => handleToggleLevel(level)}
+                                    className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                                >
+                                    <span className="font-semibold text-slate-700 text-xs uppercase tracking-wider">
+                                        {level === 'orphaned' ? 'Unlinked' : `Level ${level}`}
+                                    </span>
+                                    {expandedLevels[level] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                </button>
+
+                                {expandedLevels[level] && (
+                                    <div className="bg-white p-2 space-y-1">
+                                        {levels[level].map(node => (
+                                            <button
+                                                key={node.id}
+                                                onClick={() => handleNodeClick(node)}
+                                                className={`w-full text-left p-2.5 rounded-md text-sm flex items-center space-x-2 min-h-[44px] ${selectedNode?.id === node.id ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'hover:bg-slate-50 text-slate-600'}`}
+                                            >
+                                                <div className={`w-2 h-2 rounded-full shrink-0 ${node.type === 'result' ? 'bg-green-400' : 'bg-blue-400'}`}></div>
+                                                <span className="truncate font-medium text-xs md:text-sm">{node.id}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                {/* EDITOR FORM */}
-                <div className="flex-1 overflow-y-auto p-8">
-                    {selectedNode ? (
-                        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-8">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-1">Edit Node</h3>
-                                    <p className="text-slate-500 font-mono text-sm">ID: {selectedNode.id}</p>
-                                </div>
-                                <button
-                                    onClick={() => handleDeleteNode(selectedNode.id)}
-                                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                    title="Hapus Node"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
-                            </div>
+                {/* RIGHT PANEL: EDITOR */}
+                <div className={`${mobilePanel === 'editor' ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-slate-50`}>
+                    {/* TOOLBAR */}
+                    <div className="bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3 gap-3">
+                        <div className="flex items-center min-w-0">
+                            {isDirty && <span className="text-amber-600 text-xs font-medium flex items-center gap-1 truncate"><AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Belum disimpan</span>}
+                        </div>
+                        <button
+                            onClick={handleSave}
+                            disabled={!isDirty || saving}
+                            className={`flex items-center px-3 py-2 min-h-[40px] rounded-lg font-medium text-sm transition-all shrink-0 ${isDirty ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+                        >
+                            {saving ? 'Menyimpan...' : <><Save className="w-4 h-4 mr-1.5" /> Simpan</>}
+                        </button>
+                    </div>
 
-                            <div className="space-y-6">
-                                {/* TYPE SELECTOR */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Tipe Node</label>
-                                    <select
-                                        value={selectedNode.type}
-                                        onChange={(e) => handleUpdateNode({ ...selectedNode, type: e.target.value })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    {/* EDITOR FORM */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                        {selectedNode ? (
+                            <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-8">
+                                <div className="flex justify-between items-start mb-5">
+                                    <div>
+                                        <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-1">Edit Node</h3>
+                                        <p className="text-slate-500 font-mono text-xs md:text-sm">ID: {selectedNode.id}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDeleteNode(selectedNode.id)}
+                                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+                                        title="Hapus Node"
                                     >
-                                        <option value="choice">Pilihan (Choice)</option>
-                                        <option value="multi_choice">Pilihan Ganda (Multi Choice)</option>
-                                        <option value="image_selection">Pilihan Gambar</option>
-                                        <option value="audio_selection">Pilihan Audio</option>
-                                        <option value="danger_check">Cek Bahaya (Danger Check)</option>
-                                        <option value="result">Hasil Diagnosis (Result)</option>
-                                    </select>
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
                                 </div>
 
-                                {/* QUESTION / DIAGNOSIS */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        {selectedNode.type === 'result' ? 'Nama Diagnosis' : 'Pertanyaan'}
-                                    </label>
-                                    <textarea
-                                        value={selectedNode.type === 'result' ? selectedNode.diagnosis : selectedNode.question}
-                                        onChange={(e) => handleUpdateNode({
-                                            ...selectedNode,
-                                            [selectedNode.type === 'result' ? 'diagnosis' : 'question']: e.target.value
-                                        })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-                                    />
-                                </div>
-
-                                {/* DESCRIPTION / RECOMMENDATION */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                        {selectedNode.type === 'result' ? 'Rekomendasi Medis' : 'Deskripsi Tambahan (Opsional)'}
-                                    </label>
-                                    <textarea
-                                        value={selectedNode.type === 'result' ? selectedNode.recommendation : (selectedNode.description || '')}
-                                        onChange={(e) => handleUpdateNode({
-                                            ...selectedNode,
-                                            [selectedNode.type === 'result' ? 'recommendation' : 'description']: e.target.value
-                                        })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[80px]"
-                                    />
-                                </div>
-
-                                {/* OPTIONS EDITOR (If not result) */}
-                                {selectedNode.type !== 'result' && (
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <label className="text-sm font-bold text-slate-700">Opsi Jawaban</label>
-                                            <button
-                                                onClick={() => {
-                                                    const newOpt = { label: "Opsi Baru", value: "new_val", next: "start" };
-                                                    handleUpdateNode({ ...selectedNode, options: [...(selectedNode.options || []), newOpt] });
-                                                }}
-                                                className="text-xs bg-white border border-slate-300 px-3 py-1 rounded-md hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                                            >
-                                                + Tambah Opsi
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            {selectedNode.options?.map((opt, idx) => (
-                                                <div key={idx} className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
-                                                    <div className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Label (Teks Tombol)"
-                                                            value={opt.label}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...selectedNode.options];
-                                                                newOpts[idx].label = e.target.value;
-                                                                handleUpdateNode({ ...selectedNode, options: newOpts });
-                                                            }}
-                                                            className="flex-1 p-2 border border-slate-300 rounded text-sm"
-                                                        />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Value (Internal)"
-                                                            value={opt.value}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...selectedNode.options];
-                                                                newOpts[idx].value = e.target.value;
-                                                                handleUpdateNode({ ...selectedNode, options: newOpts });
-                                                            }}
-                                                            className="w-1/3 p-2 border border-slate-300 rounded text-sm font-mono text-slate-500"
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-bold text-slate-400">NEXT NODE:</span>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="ID Node Selanjutnya"
-                                                            value={opt.next}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...selectedNode.options];
-                                                                newOpts[idx].next = e.target.value;
-                                                                handleUpdateNode({ ...selectedNode, options: newOpts });
-                                                            }}
-                                                            className={`flex-1 p-2 border rounded text-sm font-mono ${tree.find(n => n.id === opt.next) ? 'border-green-300 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-700'}`}
-                                                        />
-                                                        <button
-                                                            onClick={() => {
-                                                                const newOpts = selectedNode.options.filter((_, i) => i !== idx);
-                                                                handleUpdateNode({ ...selectedNode, options: newOpts });
-                                                            }}
-                                                            className="p-2 text-red-400 hover:text-red-600"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                <div className="space-y-5">
+                                    {/* TYPE SELECTOR */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Tipe Node</label>
+                                        <select
+                                            value={selectedNode.type}
+                                            onChange={(e) => handleUpdateNode({ ...selectedNode, type: e.target.value })}
+                                            className="w-full p-3 min-h-[44px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                        >
+                                            <option value="choice">Pilihan (Choice)</option>
+                                            <option value="multi_choice">Pilihan Ganda</option>
+                                            <option value="image_selection">Pilihan Gambar</option>
+                                            <option value="audio_selection">Pilihan Audio</option>
+                                            <option value="danger_check">Cek Bahaya</option>
+                                            <option value="result">Hasil Diagnosis</option>
+                                        </select>
                                     </div>
-                                )}
 
-                                {/* RESULT SPECIFIC FIELDS */}
-                                {selectedNode.type === 'result' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Severity</label>
-                                            <select
-                                                value={selectedNode.severity}
-                                                onChange={(e) => handleUpdateNode({ ...selectedNode, severity: e.target.value })}
-                                                className="w-full p-3 border border-slate-300 rounded-lg"
-                                            >
-                                                <option value="low">Low (Ringan)</option>
-                                                <option value="moderate">Moderate (Sedang)</option>
-                                                <option value="high">High (Berat)</option>
-                                                <option value="critical">Critical (Gawat Darurat)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Confidence Score (%)</label>
-                                            <input
-                                                type="number"
-                                                value={selectedNode.confidence}
-                                                onChange={(e) => handleUpdateNode({ ...selectedNode, confidence: parseInt(e.target.value) })}
-                                                className="w-full p-3 border border-slate-300 rounded-lg"
-                                            />
-                                        </div>
+                                    {/* QUESTION / DIAGNOSIS */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                            {selectedNode.type === 'result' ? 'Nama Diagnosis' : 'Pertanyaan'}
+                                        </label>
+                                        <textarea
+                                            value={selectedNode.type === 'result' ? selectedNode.diagnosis : selectedNode.question}
+                                            onChange={(e) => handleUpdateNode({
+                                                ...selectedNode,
+                                                [selectedNode.type === 'result' ? 'diagnosis' : 'question']: e.target.value
+                                            })}
+                                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[80px] text-sm"
+                                        />
                                     </div>
-                                )}
+
+                                    {/* DESCRIPTION / RECOMMENDATION */}
+                                    <div>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                            {selectedNode.type === 'result' ? 'Rekomendasi Medis' : 'Deskripsi (Opsional)'}
+                                        </label>
+                                        <textarea
+                                            value={selectedNode.type === 'result' ? selectedNode.recommendation : (selectedNode.description || '')}
+                                            onChange={(e) => handleUpdateNode({
+                                                ...selectedNode,
+                                                [selectedNode.type === 'result' ? 'recommendation' : 'description']: e.target.value
+                                            })}
+                                            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[70px] text-sm"
+                                        />
+                                    </div>
+
+                                    {/* OPTIONS EDITOR */}
+                                    {selectedNode.type !== 'result' && (
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <label className="text-sm font-bold text-slate-700">Opsi Jawaban</label>
+                                                <button
+                                                    onClick={() => {
+                                                        const newOpt = { label: "Opsi Baru", value: "new_val", next: "start" };
+                                                        handleUpdateNode({ ...selectedNode, options: [...(selectedNode.options || []), newOpt] });
+                                                    }}
+                                                    className="text-xs bg-white border border-slate-300 px-3 py-1.5 min-h-[36px] rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                                >
+                                                    + Tambah
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {selectedNode.options?.map((opt, idx) => (
+                                                    <div key={idx} className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Label"
+                                                                value={opt.label}
+                                                                onChange={(e) => {
+                                                                    const newOpts = [...selectedNode.options];
+                                                                    newOpts[idx].label = e.target.value;
+                                                                    handleUpdateNode({ ...selectedNode, options: newOpts });
+                                                                }}
+                                                                className="flex-1 p-2 min-h-[40px] border border-slate-300 rounded text-sm"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Value"
+                                                                value={opt.value}
+                                                                onChange={(e) => {
+                                                                    const newOpts = [...selectedNode.options];
+                                                                    newOpts[idx].value = e.target.value;
+                                                                    handleUpdateNode({ ...selectedNode, options: newOpts });
+                                                                }}
+                                                                className="w-1/3 p-2 min-h-[40px] border border-slate-300 rounded text-sm font-mono text-slate-500"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs font-bold text-slate-400 shrink-0">NEXT:</span>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="ID Node Selanjutnya"
+                                                                value={opt.next}
+                                                                onChange={(e) => {
+                                                                    const newOpts = [...selectedNode.options];
+                                                                    newOpts[idx].next = e.target.value;
+                                                                    handleUpdateNode({ ...selectedNode, options: newOpts });
+                                                                }}
+                                                                className={`flex-1 p-2 min-h-[40px] border rounded text-sm font-mono ${tree.find(n => n.id === opt.next) ? 'border-green-300 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-700'}`}
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newOpts = selectedNode.options.filter((_, i) => i !== idx);
+                                                                    handleUpdateNode({ ...selectedNode, options: newOpts });
+                                                                }}
+                                                                className="p-2 min-w-[40px] min-h-[40px] text-red-400 hover:text-red-600 flex items-center justify-center"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* RESULT SPECIFIC FIELDS */}
+                                    {selectedNode.type === 'result' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Severity</label>
+                                                <select
+                                                    value={selectedNode.severity}
+                                                    onChange={(e) => handleUpdateNode({ ...selectedNode, severity: e.target.value })}
+                                                    className="w-full p-3 min-h-[44px] border border-slate-300 rounded-lg text-sm"
+                                                >
+                                                    <option value="low">Low (Ringan)</option>
+                                                    <option value="moderate">Moderate (Sedang)</option>
+                                                    <option value="high">High (Berat)</option>
+                                                    <option value="critical">Critical (Gawat Darurat)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-slate-700 mb-2">Confidence (%)</label>
+                                                <input
+                                                    type="number"
+                                                    value={selectedNode.confidence}
+                                                    onChange={(e) => handleUpdateNode({ ...selectedNode, confidence: parseInt(e.target.value) })}
+                                                    className="w-full p-3 min-h-[44px] border border-slate-300 rounded-lg text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                            <Edit2 className="w-16 h-16 mb-4 opacity-20" />
-                            <p className="text-lg font-medium">Pilih Node dari Sidebar untuk Mengedit</p>
-                            <p className="text-sm">Gunakan tombol "+" untuk membuat node baru</p>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-16">
+                                <Edit2 className="w-12 h-12 mb-3 opacity-20" />
+                                <p className="text-base font-medium text-center">Pilih Node untuk Mengedit</p>
+                                <p className="text-sm text-center mt-1">Gunakan "+" untuk membuat node baru</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

@@ -49,19 +49,19 @@ const ConsultationHistory = () => {
     });
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-4 md:p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Riwayat Diagnosa</h1>
                     <p className="text-slate-500">Arsip lengkap diagnosa dan konsultasi pasien.</p>
                 </div>
-                <div className="flex items-center space-x-3">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 sm:flex-none">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Cari pasien atau diagnosa..."
-                            className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 w-64 text-sm"
+                            className="pl-10 pr-4 py-2 min-h-[44px] border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 w-full md:w-64 text-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -100,7 +100,51 @@ const ConsultationHistory = () => {
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* MOBILE: Card list view */}
+                <div className="md:hidden divide-y divide-slate-50">
+                    {loading ? (
+                        <div className="px-4 py-12 text-center text-slate-400">Memuat riwayat...</div>
+                    ) : filteredHistory.length === 0 ? (
+                        <div className="px-4 py-12 text-center text-slate-400">
+                            <Activity size={32} className="mx-auto mb-2 opacity-20" />
+                            <p>Tidak ada data riwayat ditemukan.</p>
+                        </div>
+                    ) : (
+                        filteredHistory.map((item) => {
+                            const dateObj = new Date(item.requested_date.replace(' ', 'T'));
+                            const result = item.diagnosis_result || '';
+                            let badgeText = 'STABIL';
+                            let badgeClass = 'bg-blue-50 text-blue-600';
+                            if (result.includes('GAWAT DARURAT')) { badgeText = 'GAWAT'; badgeClass = 'bg-red-50 text-red-600'; }
+                            else if (result.includes('Suspek') || result.includes('Eksaserbasi')) { badgeText = 'WASPADA'; badgeClass = 'bg-amber-50 text-amber-600'; }
+                            return (
+                                <div key={item.id} className="flex items-start gap-3 p-4 hover:bg-slate-50/80 transition-colors">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-teal-50 to-blue-50 text-teal-600 rounded-xl flex items-center justify-center font-bold text-sm shadow-sm border border-teal-100 shrink-0">
+                                        {item.patient_name.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                                            <p className="font-bold text-slate-800 text-sm truncate">{item.patient_name}</p>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>{badgeText}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-700 font-medium leading-snug line-clamp-2">{item.diagnosis_result || 'Belum ada diagnosa'}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-xs text-slate-400">
+                                                {dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · {dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                            {item.confidence_score && (
+                                                <span className="text-xs text-slate-400">· {item.confidence_score}%</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                {/* DESKTOP: Table view */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50/50 border-b border-slate-100">
                             <tr>
@@ -205,6 +249,7 @@ const ConsultationHistory = () => {
                         </tbody>
                     </table>
                 </div>
+                {/* end desktop table */}
             </div>
         </div>
     );

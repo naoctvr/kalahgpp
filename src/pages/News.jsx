@@ -28,7 +28,7 @@ const News = () => {
     return (
         <div className="min-h-screen bg-slate-50 pb-24">
             <div className="max-w-7xl mx-auto space-y-8">
-                <header className="flex justify-between items-end">
+                <header className="flex justify-between items-end flex-wrap gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
                             <Newspaper className="text-teal-600" />

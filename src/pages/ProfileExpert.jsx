@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Save, User, Building, FileBadge, GraduationCap, Loader2, CheckCircle } from 'lucide-react';
+import { User, Building, FileBadge, GraduationCap, Loader2, CheckCircle, AlertCircle, Stethoscope } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
@@ -13,25 +13,17 @@ const ProfileExpert = () => {
         title_degree: '',
         sip_number: ''
     });
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState(null);
 
     useEffect(() => {
-        if (user?.id) {
-            fetchProfile();
-        }
+        if (user?.id) fetchProfile();
     }, [user]);
 
     const fetchProfile = async () => {
         setIsLoading(true);
         try {
-            // Reusing the user profile endpoint which returns all fields including new ones if they exist
-            // Wait, the backend endpoint /api/user/profile/:id selects specific fields. 
-            // I need to update the backend GET endpoint to include expert fields or use a new one.
-            // I'll assume I updated the GET endpoint or will update it. 
-            // Actually, I should update the GET endpoint in server/index.js to include these fields.
-            // For now, let's try fetching.
             const res = await fetch(`${API_BASE}/user/profile/${user.id}`);
             const data = await res.json();
             if (data.success) {
@@ -50,15 +42,12 @@ const ProfileExpert = () => {
         }
     };
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSaving(true);
         setMessage(null);
-
         try {
             const res = await fetch(`${API_BASE}/expert/profile/${user.id}`, {
                 method: 'PUT',
@@ -70,11 +59,10 @@ const ProfileExpert = () => {
                 })
             });
             const data = await res.json();
-            if (data.success) {
-                setMessage({ type: 'success', text: 'Profil pakar berhasil diperbarui.' });
-            } else {
-                setMessage({ type: 'error', text: 'Gagal menyimpan perubahan.' });
-            }
+            setMessage(data.success
+                ? { type: 'success', text: 'Profil pakar berhasil diperbarui.' }
+                : { type: 'error', text: 'Gagal menyimpan perubahan.' }
+            );
         } catch (err) {
             setMessage({ type: 'error', text: 'Terjadi kesalahan server.' });
         } finally {
@@ -82,117 +70,130 @@ const ProfileExpert = () => {
         }
     };
 
-    if (isLoading) return <div className="p-8 text-center">Memuat data...</div>;
+    if (isLoading) return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+        </div>
+    );
+
+    const inputClass = "w-full pl-10 pr-4 py-2.5 min-h-[44px] border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white";
+    const disabledClass = "w-full pl-10 pr-4 py-2.5 min-h-[44px] bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-400 cursor-not-allowed";
+
+    const displayName = formData.title_degree
+        ? `${formData.name}, ${formData.title_degree}`
+        : formData.name;
 
     return (
-        <div className="max-w-3xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">Profil Pakar</h1>
-                <p className="text-slate-500">Kelola informasi profesional dan kredensial Anda.</p>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 md:p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Read Only Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Nama Lengkap</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        value={formData.name}
-                                        disabled
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 cursor-not-allowed"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        disabled
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 cursor-not-allowed"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-slate-100 pt-6">
-                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Data Profesional</h3>
-
-                            <div className="grid grid-cols-1 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">Gelar Akademis & Profesi</label>
-                                    <div className="relative">
-                                        <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            name="title_degree"
-                                            value={formData.title_degree}
-                                            onChange={handleChange}
-                                            placeholder="Contoh: Sp.P, Sp.PD-KP"
-                                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">Instansi / Rumah Sakit</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            name="institution"
-                                            value={formData.institution}
-                                            onChange={handleChange}
-                                            placeholder="Nama Rumah Sakit / Klinik Praktik"
-                                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">Nomor SIP (Surat Izin Praktik)</label>
-                                    <div className="relative">
-                                        <FileBadge className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                        <input
-                                            type="text"
-                                            name="sip_number"
-                                            value={formData.sip_number}
-                                            onChange={handleChange}
-                                            placeholder="Nomor SIP yang berlaku"
-                                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {message && (
-                            <div className={`p-4 rounded-lg flex items-center ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                {message.type === 'success' && <CheckCircle className="w-5 h-5 mr-2" />}
-                                {message.text}
-                            </div>
-                        )}
-
-                        <div className="flex justify-end pt-4">
-                            <button
-                                type="submit"
-                                disabled={isSaving}
-                                className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center shadow-lg shadow-blue-200"
-                            >
-                                {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-                                Simpan Perubahan
-                            </button>
-                        </div>
-                    </form>
+        <div className="max-w-2xl mx-auto pb-24">
+            {/* Header */}
+            <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                    <Stethoscope className="w-7 h-7" />
+                </div>
+                <div>
+                    <h1 className="text-xl font-bold text-slate-900">{displayName || 'Profil Pakar'}</h1>
+                    <p className="text-sm text-slate-400">{formData.institution || 'Dokter Spesialis'}</p>
                 </div>
             </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Informasi Akun */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Informasi Akun</h3>
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Nama Lengkap</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4" />
+                                <input type="text" value={formData.name} disabled className={disabledClass} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Email</label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4" />
+                                <input type="email" value={formData.email} disabled className={disabledClass} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Data Profesional */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Data Profesional</h3>
+                    <div className="space-y-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Gelar Akademis & Profesi</label>
+                            <div className="relative">
+                                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    name="title_degree"
+                                    value={formData.title_degree}
+                                    onChange={handleChange}
+                                    placeholder="Contoh: Sp.P, Sp.PD-KP"
+                                    className={inputClass}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Instansi / Rumah Sakit</label>
+                            <div className="relative">
+                                <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    name="institution"
+                                    value={formData.institution}
+                                    onChange={handleChange}
+                                    placeholder="Nama Rumah Sakit / Klinik Praktik"
+                                    className={inputClass}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-500 mb-1">Nomor SIP (Surat Izin Praktik)</label>
+                            <div className="relative">
+                                <FileBadge className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    name="sip_number"
+                                    value={formData.sip_number}
+                                    onChange={handleChange}
+                                    placeholder="Nomor SIP yang berlaku"
+                                    className={inputClass}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Message */}
+                {message && (
+                    <div className={`flex items-center gap-2 p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                        {message.type === 'success'
+                            ? <CheckCircle className="w-4 h-4 shrink-0" />
+                            : <AlertCircle className="w-4 h-4 shrink-0" />
+                        }
+                        {message.text}
+                    </div>
+                )}
+
+                {/* Submit */}
+                <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-3 min-h-[44px] rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Menyimpan...
+                        </>
+                    ) : 'Simpan Perubahan'}
+                </button>
+
+            </form>
         </div>
     );
 };

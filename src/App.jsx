@@ -16,6 +16,7 @@ import Riwayat from './pages/Riwayat';
 import Profile from './pages/Profile';
 import ProfileExpert from './pages/ProfileExpert';
 import News from './pages/News';
+import Pricing from './pages/Pricing';
 import ExpertResearch from './pages/ExpertResearch';
 import TreeManager from './pages/TreeManager';
 import ConsultationHistory from './pages/ConsultationHistory';
@@ -99,6 +100,22 @@ const App = () => {
           <ProtectedRoute allowedRoles={['patient', 'expert']}>
             <AppShell>
               <News />
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/pricing" element={
+          <ProtectedRoute allowedRoles={['patient', 'expert']}>
+            <AppShell>
+              <Pricing />
+            </AppShell>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['expert', 'admin']}>
+            <AppShell>
+              <AdminDashboard />
             </AppShell>
           </ProtectedRoute>
         } />

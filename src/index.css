@@ -9,6 +9,42 @@
   body {
     @apply antialiased text-slate-900 bg-slate-50;
     touch-action: pan-x pan-y;
+    overflow-x: hidden;
+    /* BottomNav height variable — dipakai oleh chat page */
+    --bottom-nav-height: 56px;
+  }
+  @media (min-width: 768px) {
+    body {
+      --bottom-nav-height: 0px;
+    }
+  }
+  /* Prevent iOS Safari auto-zoom on input focus (requires font-size >= 16px) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  /* Ensure readable line-height for paragraph text */
+  p {
+    line-height: 1.5;
+  }
+}
+
+/* Safe Area Utilities */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Backdrop-filter fallback untuk Firefox */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-md {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+  .bg-slate-900\/80 {
+    background-color: rgba(15, 23, 42, 0.95) !important;
   }
 }
 

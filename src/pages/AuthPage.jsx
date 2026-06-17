@@ -83,7 +83,7 @@ const AuthPage = () => {
             <div className="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row" style={{ minHeight: 600 }}>
 
                 {/* Left Side - Visual */}
-                <div className="w-full md:w-1/2 bg-slate-900 p-8 flex flex-col justify-between relative overflow-hidden text-white">
+                <div className="hidden md:flex w-full md:w-1/2 bg-slate-900 p-8 flex-col justify-between relative overflow-hidden text-white">
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-900/50 to-slate-900/80 z-10" />
                     {/* Abstract Background Element */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -115,7 +115,7 @@ const AuthPage = () => {
                 </div>
 
                 {/* Right Side - Form */}
-                <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                <div className="w-full md:w-1/2 p-6 md:p-8 lg:p-12 flex flex-col justify-center">
                     <div className="mb-8">
                         <h3 className="text-2xl font-bold text-slate-800 mb-2">
                             {isLogin ? 'Login Akun' : 'Buat Akun Baru'}
@@ -152,7 +152,7 @@ const AuthPage = () => {
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleChange}
-                                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                                                className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
                                                 placeholder="John Doe"
                                                 required={!isLogin}
                                             />
@@ -171,7 +171,7 @@ const AuthPage = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                                    className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
                                     placeholder="name@example.com"
                                     required
                                 />
@@ -187,7 +187,7 @@ const AuthPage = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                                    className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -235,7 +235,7 @@ const AuthPage = () => {
                                                                 name="licenseCode"
                                                                 value={formData.licenseCode}
                                                                 onChange={handleChange}
-                                                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 text-sm"
+                                                                className="w-full pl-10 pr-4 py-3 min-h-[44px] border border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 text-sm"
                                                                 placeholder="Masukkan kode lisensi..."
                                                             />
                                                         </div>

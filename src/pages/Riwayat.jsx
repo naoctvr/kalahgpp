@@ -78,8 +78,8 @@ const Riwayat = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6 overflow-x-hidden">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center">
                     <div className="p-3 bg-indigo-50 rounded-xl mr-4">
                         <History className="w-8 h-8 text-indigo-600" />
@@ -91,42 +91,39 @@ const Riwayat = () => {
                 </div>
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid gap-3">
                 {history.length > 0 ? (
                     history.map((item, index) => {
                         const riskLevel = getRiskLevel(item);
+                        const badgeText = riskLevel === 'High' ? 'BAHAYA' : riskLevel === 'Medium' ? 'WASPADA' : 'AMAN';
+                        const badgeClass = riskLevel === 'High' ? 'bg-red-50 text-red-600' : riskLevel === 'Medium' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600';
                         return (
                             <motion.div
                                 key={item.id || index}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between hover:shadow-md transition-shadow"
+                                transition={{ delay: index * 0.05 }}
+                                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
                             >
-                                <div className="mb-4 md:mb-0">
-                                    <div className="flex items-center text-sm text-slate-400 mb-2">
-                                        <Calendar className="w-4 h-4 mr-2" />
-                                        {new Date(item.created_at).toLocaleDateString('id-ID', {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
+                                {/* Mobile: compact card */}
+                                <div className="flex items-start gap-3 p-4">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${riskLevel === 'High' ? 'bg-red-100 text-red-600' : riskLevel === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                        <History className="w-5 h-5" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800">{item.final_result}</h3>
-                                    <p className="text-slate-600 text-sm mt-1 max-w-2xl">
-                                        Skor Keyakinan: {item.confidence_score}%
-                                    </p>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${riskLevel === 'High' ? 'bg-red-100 text-red-700' :
-                                            riskLevel === 'Medium' ? 'bg-orange-100 text-orange-700' :
-                                                'bg-green-100 text-green-700'
-                                        }`}>
-                                        {riskLevel === 'High' ? 'Bahaya' : riskLevel === 'Medium' ? 'Waspada' : 'Aman'}
-                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2 mb-0.5">
+                                            <p className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 flex-1">{item.final_result}</p>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgeClass}`}>{badgeText}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-xs text-slate-400">
+                                                {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </p>
+                                            {item.confidence_score && (
+                                                <span className="text-xs text-slate-400">· {item.confidence_score}%</span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         );

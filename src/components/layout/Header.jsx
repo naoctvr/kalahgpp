@@ -5,7 +5,7 @@ import { Bell, Menu, LogOut, User, ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Header = () => {
+const Header = ({ onMenuToggle }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -33,7 +33,11 @@ const Header = () => {
     return (
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 px-6 flex items-center justify-between">
             <div className="flex items-center">
-                <button className="md:hidden mr-4 text-slate-500">
+                <button
+                    className="md:hidden mr-4 text-slate-500 p-2 hover:bg-slate-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    onClick={onMenuToggle}
+                    aria-label="Buka menu navigasi"
+                >
                     <Menu className="w-6 h-6" />
                 </button>
                 <nav className="hidden sm:flex text-sm text-slate-500">
