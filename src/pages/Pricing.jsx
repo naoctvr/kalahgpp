@@ -220,13 +220,13 @@ const Pricing = () => {
                         disabled={isPremium}
                         className={`w-full py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all duration-150 ${
                             isPremium
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 cursor-default'
+                                ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20 cursor-default'
                                 : 'bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/20 active:scale-95'
                         }`}
                     >
                         {isPremium ? (
                             <>
-                                <Check className="w-4 h-4 text-emerald-500" /> Paket Pro Aktif
+                                <Check className="w-4 h-4 text-teal-400" /> Paket Pro Aktif
                             </>
                         ) : (
                             <>
@@ -252,7 +252,7 @@ const Pricing = () => {
                             <div className="text-slate-700 font-medium">{feature.name}</div>
                             <div className="flex justify-center">
                                 {feature.free === true ? (
-                                    <Check className="w-5 h-5 text-emerald-500" />
+                                    <Check className="w-5 h-5 text-teal-600" />
                                 ) : feature.free === false ? (
                                     <X className="w-5 h-5 text-slate-300" />
                                 ) : (
