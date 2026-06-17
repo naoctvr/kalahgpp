@@ -36,8 +36,8 @@ const Pricing = () => {
         { name: 'Kamus penyakit pernapasan', free: true, pro: true },
         { name: 'Skor harian paru-paru', free: true, pro: true },
         { name: 'Riwayat diagnosa', free: '5 terakhir', pro: 'Unlimited' },
-        { name: 'Konsultasi tatap muka gratis', free: '2x / bulan', pro: 'Unlimited' },
-        { name: 'Temu dokter lanjutan', free: 'Berbayar per temu', pro: 'Gratis penuh' },
+        { name: 'Konsultasi tatap muka gratis', free: 'Tidak ada', pro: '2x / bulan' },
+        { name: 'Temu dokter lanjutan', free: 'Berbayar per temu', pro: 'Berbayar per temu' },
         { name: 'Chat langsung dengan dokter', free: false, pro: true },
         { name: 'Booking konsultasi dokter', free: false, pro: true },
         { name: 'Prioritas antrean konsultasi', free: false, pro: true },
@@ -156,9 +156,9 @@ const Pricing = () => {
                             {[
                                 'Diagnosa mandiri harian (AI)',
                                 'Akses artikel & tips kesehatan',
-                                'Konsultasi tatap muka gratis 2x / bulan',
                                 'Kamus penyakit pernapasan',
                                 'Skor harian kesehatan paru',
+                                'Riwayat diagnosa terbatas (5 data terakhir)',
                             ].map((feature, idx) => (
                                 <li key={idx} className="flex items-start gap-2.5 text-sm">
                                     <Check className="w-4 h-4 mt-0.5 shrink-0 text-teal-600" />
@@ -166,9 +166,9 @@ const Pricing = () => {
                                 </li>
                             ))}
                             {[
-                                'Temu lanjutan berbayar per pertemuan',
+                                'Konsultasi tatap muka gratis',
                                 'Chat langsung dengan dokter',
-                                'Booking konsultasi unlimited',
+                                'Booking konsultasi prioritas',
                                 'Notifikasi Telegram',
                             ].map((feature, idx) => (
                                 <li key={`locked-${idx}`} className="flex items-start gap-2.5 text-sm">
@@ -221,9 +221,10 @@ const Pricing = () => {
                         <ul className="space-y-3 mb-8">
                             {[
                                 'Semua fitur Free Plan',
-                                'Konsultasi tatap muka gratis tanpa batas',
+                                'Konsultasi tatap muka gratis 2x / bulan',
+                                'Temu dokter lanjutan berbayar per pertemuan',
                                 'Live Chat Unlimited dengan Dokter',
-                                'Booking konsultasi prioritas gratis',
+                                'Booking konsultasi prioritas',
                                 'Prioritas antrean konsultasi',
                                 'Notifikasi & Laporan Harian via Telegram',
                                 'Pengingat minum obat otomatis',
