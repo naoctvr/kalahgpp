@@ -1131,28 +1131,28 @@ app.get('/api/admin/users', async (req, res) => {
 
 app.get('/api/admin/subscription-stats', async (req, res) => {
     try {
-        const [totalUsersRows] = await db.query('SELECT COUNT(*) as count FROM users');
-        const [proUsersRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE is_premium = true');
-        const [freeUsersRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE is_premium = false OR is_premium IS NULL');
+        const [totalUsersRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'patient'");
+        const [proUsersRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE is_premium = true AND role = 'patient'");
+        const [freeUsersRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE (is_premium = false OR is_premium IS NULL) AND role = 'patient'");
         const [patientRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'patient'");
         const [expertRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'expert'");
 
-        // Recent pro upgrades (last 30 days)
+        // Recent pro upgrades (last 30 days) - patient only
         const [recentUpgrades] = await db.query(`
             SELECT id, name, email, premium_since 
             FROM users 
-            WHERE is_premium = true AND premium_since IS NOT NULL
+            WHERE is_premium = true AND premium_since IS NOT NULL AND role = 'patient'
             ORDER BY premium_since DESC 
             LIMIT 10
         `);
 
-        // Pro users by week (last 8 weeks)
+        // Pro users by week (last 8 weeks) - patient only
         const [weeklyGrowth] = await db.query(`
             SELECT 
                 DATE_TRUNC('week', premium_since) as week,
                 COUNT(*) as count
             FROM users 
-            WHERE is_premium = true AND premium_since IS NOT NULL
+            WHERE is_premium = true AND premium_since IS NOT NULL AND role = 'patient'
                 AND premium_since >= NOW() - INTERVAL '8 weeks'
             GROUP BY DATE_TRUNC('week', premium_since)
             ORDER BY week ASC
