@@ -163,10 +163,10 @@ const Pricing = () => {
                 </div>
 
                 {/* PRO PLAN */}
-                <div className={`relative rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between ${
+                <div className={`relative rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between bg-gradient-to-b from-teal-950 via-teal-900 to-slate-950 text-white shadow-xl scale-[1.02] z-10 ${
                     isPremium
-                        ? 'bg-gradient-to-b from-teal-950 via-teal-900 to-slate-950 text-white shadow-xl scale-[1.02] border-2 border-teal-500 z-10'
-                        : 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 text-white shadow-xl scale-[1.02] border border-slate-700 z-10'
+                        ? 'border-2 border-teal-500'
+                        : 'border border-teal-600/50'
                 }`}>
                     {isPremium ? (
                         <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
