@@ -22,6 +22,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
 
     const [doctorSchedule, setDoctorSchedule] = useState([]);
     const [conflictError, setConflictError] = useState(null);
+    const [paymentMethod, setPaymentMethod] = useState('credit_card');
 
     const checkUserQuota = async () => {
         if (!userId) return;
@@ -40,6 +41,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
         if (isOpen && userId) {
             fetchDoctors();
             checkUserQuota();
+            setStep(1); // Reset step to 1 when opening modal
             // Pre-select latest diagnosis if available
             if (history && history.length > 0) {
                 setFormData(prev => ({ ...prev, diagnosisId: history[0].id }));
@@ -108,34 +110,36 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
         return false;
     };
 
-    const handleSubmit = async (e) => {
+    const handleFormNext = (e) => {
         e.preventDefault();
-
         if (validateConflict(formData.date, formData.time)) return;
+        if (quotaStats?.requiresPayment) {
+            setStep(2);
+        } else {
+            executeBooking(false);
+        }
+    };
 
+    const executeBooking = async (isPaid) => {
         setLoading(true);
-
-        const isPaidFlow = quotaStats?.requiresPayment;
-        if (isPaidFlow) {
-            // Simulasi gerbang pembayaran
+        if (isPaid) {
+            // Simulasi pembayaran
             await new Promise(resolve => setTimeout(resolve, 1500));
         }
 
-        // Combine date and time (MySQL format: YYYY-MM-DD HH:mm:ss)
         const dateTime = `${formData.date} ${formData.time}:00`;
-
         const res = await api.bookConsultation({
             userId,
             diagnosisId: formData.diagnosisId,
             doctorId: formData.doctorId,
             date: dateTime,
             notes: formData.notes,
-            paymentCompleted: isPaidFlow ? true : false
+            paymentCompleted: isPaid
         });
 
         setLoading(false);
         if (res.success) {
-            alert(isPaidFlow ? 'Pembayaran Rp 50.000 Berhasil! Janji temu berhasil dibuat.' : 'Janji temu berhasil dibuat.');
+            alert(isPaid ? 'Pembayaran Rp 50.000 Berhasil! Janji temu berhasil dibuat.' : 'Janji temu berhasil dibuat.');
             onSuccess();
             onClose();
             setStep(1);
@@ -151,7 +155,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
 
     // Form content shared between mobile and desktop
     const formContent = (
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 pb-8">
+        <form onSubmit={handleFormNext} className="p-6 space-y-6 pb-8">
 
             {/* 1. Select Diagnosis */}
             <div className="space-y-2">
@@ -295,7 +299,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
             {/* 4. Notes */}
             <div className="space-y-2">
                 {quotaStats?.requiresPayment && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2 text-xs text-amber-800 mb-2">
+                    <div className="bg-amber-50 border border-amber-250 rounded-2xl p-4 space-y-2 text-xs text-amber-800 mb-2">
                         <div className="flex items-center gap-2 font-bold text-amber-900">
                             <AlertCircle size={16} className="text-amber-600 shrink-0" />
                             Kuota Konsultasi Gratis Habis
@@ -319,14 +323,74 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
                 disabled={loading || !formData.doctorId || !!conflictError || checkingQuota}
                 className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl shadow-lg shadow-teal-500/30 font-bold text-lg"
             >
-                {loading 
-                    ? (quotaStats?.requiresPayment ? 'Memproses Pembayaran...' : 'Mengirim...') 
-                    : quotaStats?.requiresPayment 
-                        ? 'Bayar Rp 50.000 & Konfirmasi' 
-                        : 'Konfirmasi Janji Temu'}
+                {quotaStats?.requiresPayment ? 'Lanjutkan ke Pembayaran (Rp 50.000)' : 'Konfirmasi Janji Temu'}
             </Button>
 
         </form>
+    );
+
+    // Payment content (Step 2)
+    const paymentContent = (
+        <div className="p-6 space-y-6 pb-8">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 text-white border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-teal-400 uppercase tracking-wider mb-1">Total Biaya Administrasi</p>
+                        <span className="text-2xl font-extrabold">Rp 50.000</span>
+                    </div>
+                    <div className="bg-teal-500/20 border border-teal-500/30 px-3 py-1.5 rounded-xl">
+                        <p className="text-xs font-bold text-teal-400">Pertemuan Ke-{(quotaStats?.quotaUsed || 0) + 1}</p>
+                        <p className="text-[10px] text-teal-300/70">Layanan Spesialis</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Metode Pembayaran</h3>
+                {['credit_card', 'bank_transfer', 'e_wallet'].map(method => (
+                    <label key={method} className="flex items-center p-4 border border-slate-200 rounded-xl cursor-pointer hover:border-teal-300 transition-all bg-white">
+                        <input
+                            type="radio"
+                            name="payment"
+                            value={method}
+                            checked={paymentMethod === method}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                            className="w-4 h-4 accent-teal-600"
+                        />
+                        <span className="ml-3 font-semibold text-slate-900 text-sm">
+                            {method === 'credit_card' && 'Kartu Kredit'}
+                            {method === 'bank_transfer' && 'Transfer Bank'}
+                            {method === 'e_wallet' && 'E-Wallet (GoPay, OVO, Dana)'}
+                        </span>
+                    </label>
+                ))}
+            </div>
+
+            <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl">
+                <p className="text-xs text-teal-800 leading-relaxed">
+                    <strong>ℹ️ Info:</strong> Pembayaran ini aman dan langsung diverifikasi otomatis oleh rumah sakit untuk memvalidasi antrean dokter.
+                </p>
+            </div>
+
+            <div className="flex gap-3">
+                <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                    className="flex-1 py-3.5 rounded-xl font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all"
+                >
+                    Kembali
+                </button>
+                <button
+                    type="button"
+                    onClick={() => executeBooking(true)}
+                    disabled={loading}
+                    className="flex-[2] py-3.5 rounded-xl font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                    {loading ? 'Memproses...' : 'Bayar & Konfirmasi'}
+                </button>
+            </div>
+        </div>
     );
 
     return (
@@ -364,7 +428,9 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
                         <div className="bg-teal-600 px-6 py-4 text-white flex justify-between items-center shrink-0">
                             <div>
                                 <h2 className="text-xl font-bold">Buat Janji Temu</h2>
-                                <p className="text-teal-100 text-sm">Konsultasi dengan Dokter Spesialis</p>
+                                <p className="text-teal-100 text-sm">
+                                    {step === 1 ? 'Langkah 1: Isi Jadwal & Dokter Spesialis' : 'Langkah 2: Selesaikan Pembayaran Administrasi'}
+                                </p>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                                 <X size={20} />
@@ -373,7 +439,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
 
                         {/* Scrollable content */}
                         <div className="overflow-y-auto flex-1" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}>
-                            {formContent}
+                            {step === 1 ? formContent : paymentContent}
                         </div>
                     </motion.div>
                 </>
@@ -391,7 +457,9 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
                         <div className="bg-teal-600 p-6 text-white flex justify-between items-center shrink-0">
                             <div>
                                 <h2 className="text-xl font-bold">Buat Janji Temu</h2>
-                                <p className="text-teal-100 text-sm">Konsultasi dengan Dokter Spesialis</p>
+                                <p className="text-teal-100 text-sm">
+                                    {step === 1 ? 'Langkah 1: Isi Jadwal & Dokter Spesialis' : 'Langkah 2: Selesaikan Pembayaran Administrasi'}
+                                </p>
                             </div>
                             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
                                 <X size={20} />
@@ -400,7 +468,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
 
                         {/* Body */}
                         <div className="overflow-y-auto">
-                            {formContent}
+                            {step === 1 ? formContent : paymentContent}
                         </div>
                     </motion.div>
                 </div>
