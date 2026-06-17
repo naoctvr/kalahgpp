@@ -1,19 +1,83 @@
-import React, { useState } from 'react';
-import { Sparkles, Save, X, Check, Plus, FileText, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+    Sparkles, Users, Crown, DollarSign, Search, Filter, 
+    ArrowUpDown, ChevronDown, Check, X, Activity, 
+    TrendingUp, UserCheck, UserX, Shield, Clock,
+    BarChart3, Save, Plus, FileText, Bell
+} from 'lucide-react';
 import clsx from 'clsx';
+import { api } from '../services/api';
 import AdminNotificationDashboard from '../components/ui/AdminNotificationDashboard';
 
 const AdminDashboard = () => {
-    const [activeTab, setActiveTab] = useState('logic');
+    const [activeTab, setActiveTab] = useState('overview');
+
+    // Overview state
+    const [stats, setStats] = useState(null);
+    const [loadingStats, setLoadingStats] = useState(true);
+
+    // User management state
+    const [users, setUsers] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [premiumFilter, setPremiumFilter] = useState('all');
+    const [togglingUser, setTogglingUser] = useState(null);
+
+    // Logic state (existing)
     const [topic, setTopic] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [generatedLogic, setGeneratedLogic] = useState(null);
 
+    // Fetch subscription stats
+    const fetchStats = async () => {
+        setLoadingStats(true);
+        const res = await api.getSubscriptionStats();
+        if (res.success) setStats(res.data);
+        setLoadingStats(false);
+    };
+
+    // Fetch users
+    const fetchUsers = async () => {
+        setLoadingUsers(true);
+        const params = {};
+        if (searchTerm) params.search = searchTerm;
+        if (roleFilter !== 'all') params.role = roleFilter;
+        if (premiumFilter !== 'all') params.premium = premiumFilter;
+        
+        const res = await api.getAdminUsers(params);
+        if (res.success) setUsers(res.data);
+        setLoadingUsers(false);
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'users') fetchUsers();
+    }, [activeTab, roleFilter, premiumFilter]);
+
+    // Debounce search
+    useEffect(() => {
+        if (activeTab !== 'users') return;
+        const timer = setTimeout(() => fetchUsers(), 400);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const handleTogglePremium = async (userId) => {
+        setTogglingUser(userId);
+        const res = await api.toggleUserPremium(userId);
+        if (res.success) {
+            fetchUsers();
+            fetchStats(); // Refresh stats too
+        }
+        setTogglingUser(null);
+    };
+
     const handleAnalyze = () => {
         if (!topic) return;
         setIsAnalyzing(true);
-
-        // Simulate API Call
         setTimeout(() => {
             setIsAnalyzing(false);
             setGeneratedLogic({
@@ -29,169 +93,492 @@ const AdminDashboard = () => {
         }, 2000);
     };
 
+    const formatCurrency = (num) => {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
+    const formatTime = (dateStr) => {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        const now = new Date();
+        const diff = (now - d) / 1000 / 60;
+        if (diff < 5) return 'Online';
+        if (diff < 60) return `${Math.floor(diff)} menit lalu`;
+        if (diff < 1440) return `${Math.floor(diff / 60)} jam lalu`;
+        return formatDate(dateStr);
+    };
+
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+        <div className="max-w-6xl mx-auto space-y-6 p-4 md:p-6">
+            {/* Hero Header */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
                 <div className="relative z-10">
-                    <h1 className="text-3xl font-bold mb-2">Akses Pakar & Riset AI</h1>
-                    <p className="text-blue-100 max-w-xl">
-                        Gunakan Gemini AI untuk menganalisa tren penyakit baru dan mengupdate logika diagnosa secara real-time.
+                    <h1 className="text-3xl font-bold mb-2">Panel Admin & CRM</h1>
+                    <p className="text-slate-300 max-w-xl">
+                        Kelola pengguna, pantau langganan Pro, dan riset AI medis dari satu dashboard.
                     </p>
                 </div>
-                <Sparkles className="absolute right-8 top-8 w-32 h-32 text-white/10 rotate-12" />
+                <Sparkles className="absolute right-8 top-8 w-32 h-32 text-white/5 rotate-12" />
             </div>
 
             {/* Tabs Switcher */}
-            <div className="flex border-b border-slate-200 gap-2 mb-6">
-                <button
-                    onClick={() => setActiveTab('logic')}
-                    className={clsx(
-                        "pb-3 px-4 font-semibold text-sm transition-all border-b-2",
-                        activeTab === 'logic'
-                            ? "border-blue-600 text-blue-600 font-bold"
-                            : "border-transparent text-slate-500 hover:text-slate-800"
-                    )}
-                >
-                    Logika Medis & Riset
-                </button>
-                <button
-                    onClick={() => setActiveTab('crm')}
-                    className={clsx(
-                        "pb-3 px-4 font-semibold text-sm transition-all border-b-2",
-                        activeTab === 'crm'
-                            ? "border-blue-600 text-blue-600 font-bold"
-                            : "border-transparent text-slate-500 hover:text-slate-800"
-                    )}
-                >
-                    Monitoring CRM & Notifikasi
-                </button>
+            <div className="flex p-1 bg-slate-100 rounded-xl w-full md:w-fit">
+                {[
+                    { id: 'overview', label: 'Overview', icon: BarChart3 },
+                    { id: 'users', label: 'Manajemen User', icon: Users },
+                    { id: 'logic', label: 'Riset AI', icon: Sparkles },
+                    { id: 'crm', label: 'CRM & Notifikasi', icon: Bell },
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={clsx(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                            activeTab === tab.id
+                                ? "bg-white text-slate-900 shadow-sm"
+                                : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        <tab.icon className="w-4 h-4" />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                ))}
             </div>
 
-            {activeTab === 'logic' ? (
-                <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Input Section */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 className="font-bold text-slate-900 mb-4 flex items-center">
-                        <Sparkles className="w-5 h-5 mr-2 text-indigo-500" />
-                        Generator Logika Medis
-                    </h3>
+            {/* ===== TAB: OVERVIEW ===== */}
+            {activeTab === 'overview' && (
+                <div className="space-y-6">
+                    {loadingStats ? (
+                        <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full" />
+                        </div>
+                    ) : stats ? (
+                        <>
+                            {/* Stat Cards */}
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                                            <Users className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-extrabold text-slate-900">{stats.totalUsers}</p>
+                                    <p className="text-xs text-slate-500 mt-1">Total Pengguna</p>
+                                    <div className="flex items-center gap-2 mt-2 text-xs">
+                                        <span className="text-blue-600 font-medium">{stats.totalPatients} Pasien</span>
+                                        <span className="text-slate-300">|</span>
+                                        <span className="text-teal-600 font-medium">{stats.totalExperts} Dokter</span>
+                                    </div>
+                                </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Topik Riset / Penyakit</label>
+                                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                                            <Crown className="w-5 h-5 text-amber-600" />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-extrabold text-slate-900">{stats.proUsers}</p>
+                                    <p className="text-xs text-slate-500 mt-1">User Pro Aktif</p>
+                                    <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all"
+                                            style={{ width: `${stats.totalUsers > 0 ? (stats.proUsers / stats.totalUsers * 100) : 0}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-amber-600 font-medium mt-1">
+                                        {stats.totalUsers > 0 ? Math.round(stats.proUsers / stats.totalUsers * 100) : 0}% dari total
+                                    </p>
+                                </div>
+
+                                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
+                                            <UserX className="w-5 h-5 text-slate-500" />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-extrabold text-slate-900">{stats.freeUsers}</p>
+                                    <p className="text-xs text-slate-500 mt-1">User Free</p>
+                                    <p className="text-xs text-slate-400 mt-2">Potensi konversi</p>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-sm text-white">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                            <DollarSign className="w-5 h-5 text-white" />
+                                        </div>
+                                    </div>
+                                    <p className="text-2xl font-extrabold">{formatCurrency(stats.estimatedRevenue)}</p>
+                                    <p className="text-xs text-emerald-100 mt-1">Estimasi Revenue / Bulan</p>
+                                    <p className="text-xs text-emerald-200 mt-2">{stats.proUsers} × Rp 49.000</p>
+                                </div>
+                            </div>
+
+                            {/* Recent Upgrades */}
+                            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div className="p-5 border-b border-slate-100">
+                                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                        User Terbaru yang Upgrade ke Pro
+                                    </h3>
+                                </div>
+                                <div className="divide-y divide-slate-50">
+                                    {stats.recentUpgrades && stats.recentUpgrades.length > 0 ? (
+                                        stats.recentUpgrades.map((u) => (
+                                            <div key={u.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-bold text-sm">
+                                                        {u.name?.charAt(0) || '?'}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-slate-800">{u.name}</p>
+                                                        <p className="text-xs text-slate-400">{u.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Crown className="w-4 h-4 text-amber-500" />
+                                                    <span className="text-xs text-slate-500">{formatDate(u.premium_since)}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-8 text-center text-slate-400 text-sm">
+                                            Belum ada user yang upgrade ke Pro.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="text-center text-slate-400 py-12">Gagal memuat statistik.</div>
+                    )}
+                </div>
+            )}
+
+            {/* ===== TAB: USER MANAGEMENT ===== */}
+            {activeTab === 'users' && (
+                <div className="space-y-4">
+                    {/* Search & Filters */}
+                    <div className="flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
                             <input
                                 type="text"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                placeholder="Contoh: Pneumonia Mycoplasma"
-                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                placeholder="Cari nama atau email..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+                        <div className="flex gap-2">
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            >
+                                <option value="all">Semua Role</option>
+                                <option value="patient">Pasien</option>
+                                <option value="expert">Dokter</option>
+                            </select>
+                            <select
+                                value={premiumFilter}
+                                onChange={(e) => setPremiumFilter(e.target.value)}
+                                className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            >
+                                <option value="all">Semua Status</option>
+                                <option value="true">Pro</option>
+                                <option value="false">Free</option>
+                            </select>
+                        </div>
+                    </div>
 
-                        <button
-                            onClick={handleAnalyze}
-                            disabled={isAnalyzing || !topic}
-                            className={clsx(
-                                "w-full py-3 rounded-xl font-medium flex items-center justify-center transition-all",
-                                isAnalyzing
-                                    ? "bg-slate-100 text-slate-400 cursor-wait"
-                                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200"
-                            )}
-                        >
-                            {isAnalyzing ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mr-2" />
-                                    Menganalisa via Gemini...
-                                </>
-                            ) : (
-                                <>
-                                    <Sparkles className="w-5 h-5 mr-2" />
-                                    Analisa & Buat Logika
-                                </>
-                            )}
-                        </button>
+                    {/* Summary */}
+                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <span>{users.length} pengguna ditemukan</span>
+                        {premiumFilter !== 'all' && (
+                            <span className={clsx(
+                                "px-2 py-0.5 rounded-full text-xs font-medium",
+                                premiumFilter === 'true' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                            )}>
+                                {premiumFilter === 'true' ? 'Pro Only' : 'Free Only'}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* User Table */}
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        {loadingUsers ? (
+                            <div className="flex items-center justify-center h-48">
+                                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+                            </div>
+                        ) : users.length === 0 ? (
+                            <div className="text-center py-12 text-slate-400 text-sm">
+                                Tidak ada pengguna ditemukan.
+                            </div>
+                        ) : (
+                            <>
+                                {/* Table Header */}
+                                <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <div className="col-span-3">Pengguna</div>
+                                    <div className="col-span-2">Role</div>
+                                    <div className="col-span-2">Status</div>
+                                    <div className="col-span-2">Terdaftar</div>
+                                    <div className="col-span-1">Aktif</div>
+                                    <div className="col-span-2 text-right">Aksi</div>
+                                </div>
+
+                                {/* Table Rows */}
+                                <div className="divide-y divide-slate-50">
+                                    {users.map((u) => (
+                                        <div key={u.id} className="px-5 py-3 hover:bg-slate-50/50 transition-colors">
+                                            {/* Desktop Row */}
+                                            <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                                                <div className="col-span-3 flex items-center gap-3 min-w-0">
+                                                    <div className={clsx(
+                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0",
+                                                        u.is_premium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                                    )}>
+                                                        {u.name?.charAt(0) || '?'}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
+                                                        <p className="text-xs text-slate-400 truncate">{u.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <span className={clsx(
+                                                        "text-xs font-medium px-2.5 py-1 rounded-full",
+                                                        u.role === 'expert' ? 'bg-teal-100 text-teal-700' : 'bg-blue-100 text-blue-700'
+                                                    )}>
+                                                        {u.role === 'expert' ? '🩺 Dokter' : '👤 Pasien'}
+                                                    </span>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    {u.is_premium ? (
+                                                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200 flex items-center gap-1 w-fit">
+                                                            <Crown className="w-3 h-3" /> Pro
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
+                                                            Free
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="col-span-2 text-xs text-slate-500">
+                                                    {formatDate(u.created_at)}
+                                                </div>
+                                                <div className="col-span-1">
+                                                    {u.last_active_at ? (
+                                                        <span className={clsx(
+                                                            "text-xs font-medium",
+                                                            formatTime(u.last_active_at) === 'Online' ? 'text-emerald-600' : 'text-slate-400'
+                                                        )}>
+                                                            {formatTime(u.last_active_at) === 'Online' && (
+                                                                <span className="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1" />
+                                                            )}
+                                                            {formatTime(u.last_active_at)}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-300">-</span>
+                                                    )}
+                                                </div>
+                                                <div className="col-span-2 flex justify-end">
+                                                    <button
+                                                        onClick={() => handleTogglePremium(u.id)}
+                                                        disabled={togglingUser === u.id}
+                                                        className={clsx(
+                                                            "px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95",
+                                                            togglingUser === u.id && "opacity-50 cursor-wait",
+                                                            u.is_premium
+                                                                ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                                                                : "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+                                                        )}
+                                                    >
+                                                        {togglingUser === u.id ? '...' : u.is_premium ? 'Downgrade' : 'Upgrade Pro'}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Mobile Card */}
+                                            <div className="md:hidden flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className={clsx(
+                                                        "w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0",
+                                                        u.is_premium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
+                                                    )}>
+                                                        {u.name?.charAt(0) || '?'}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
+                                                            {u.is_premium && <Crown className="w-3 h-3 text-amber-500 shrink-0" />}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <span className={clsx(
+                                                                "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                                                                u.role === 'expert' ? 'bg-teal-100 text-teal-700' : 'bg-blue-100 text-blue-700'
+                                                            )}>
+                                                                {u.role === 'expert' ? 'Dokter' : 'Pasien'}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400">{formatDate(u.created_at)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleTogglePremium(u.id)}
+                                                    disabled={togglingUser === u.id}
+                                                    className={clsx(
+                                                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0",
+                                                        u.is_premium
+                                                            ? "bg-red-50 text-red-600 border border-red-200"
+                                                            : "bg-amber-50 text-amber-700 border border-amber-200"
+                                                    )}
+                                                >
+                                                    {togglingUser === u.id ? '...' : u.is_premium ? 'Downgrade' : 'Upgrade'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
+            )}
 
-                {/* Result Preview */}
-                <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[300px]">
-                    {generatedLogic ? (
-                        <div className="w-full bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-fade-in-up">
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">New Logic Node</span>
-                                <button onClick={() => setGeneratedLogic(null)} className="text-slate-400 hover:text-red-500">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
+            {/* ===== TAB: LOGIC & RESEARCH ===== */}
+            {activeTab === 'logic' && (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Input Section */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <h3 className="font-bold text-slate-900 mb-4 flex items-center">
+                                <Sparkles className="w-5 h-5 mr-2 text-indigo-500" />
+                                Generator Logika Medis
+                            </h3>
 
-                            <h4 className="font-bold text-slate-900 text-lg mb-2">{generatedLogic.question}</h4>
-                            <p className="text-sm text-slate-500 mb-4">{generatedLogic.description}</p>
-
-                            <div className="space-y-2 mb-6">
-                                {generatedLogic.options.map((opt, idx) => (
-                                    <div key={idx} className="p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 border border-slate-100">
-                                        {opt.label}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex space-x-3">
-                                <button className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">
-                                    Edit
-                                </button>
-                                <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
-                                    <Check className="w-4 h-4 mr-2" />
-                                    Approve & Merge
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center text-slate-400">
-                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p>Hasil analisa akan muncul di sini</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Existing Logic List (Mock) */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-900">Database Logika Aktif</h3>
-                    <button className="text-blue-600 text-sm font-medium hover:underline flex items-center">
-                        <Plus className="w-4 h-4 mr-1" />
-                        Tambah Manual
-                    </button>
-                </div>
-                <div className="divide-y divide-slate-100">
-                    {[
-                        { id: 'L001', name: 'Triase Gawat Darurat', updated: '2 Jam yang lalu', status: 'Active' },
-                        { id: 'L002', name: 'Algoritma Batuk Kronis', updated: '1 Hari yang lalu', status: 'Active' },
-                        { id: 'L003', name: 'Deteksi Dini Pneumonia', updated: '3 Hari yang lalu', status: 'Review' },
-                    ].map((item) => (
-                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs mr-4">
-                                    {item.id}
-                                </div>
+                            <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-medium text-slate-900">{item.name}</h4>
-                                    <p className="text-xs text-slate-500">Updated: {item.updated}</p>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Topik Riset / Penyakit</label>
+                                    <input
+                                        type="text"
+                                        value={topic}
+                                        onChange={(e) => setTopic(e.target.value)}
+                                        placeholder="Contoh: Pneumonia Mycoplasma"
+                                        className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    />
                                 </div>
+
+                                <button
+                                    onClick={handleAnalyze}
+                                    disabled={isAnalyzing || !topic}
+                                    className={clsx(
+                                        "w-full py-3 rounded-xl font-medium flex items-center justify-center transition-all",
+                                        isAnalyzing
+                                            ? "bg-slate-100 text-slate-400 cursor-wait"
+                                            : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200"
+                                    )}
+                                >
+                                    {isAnalyzing ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mr-2" />
+                                            Menganalisa via Gemini...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-5 h-5 mr-2" />
+                                            Analisa & Buat Logika
+                                        </>
+                                    )}
+                                </button>
                             </div>
-                            <span className={clsx(
-                                "px-3 py-1 rounded-full text-xs font-medium",
-                                item.status === 'Active' ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                            )}>
-                                {item.status}
-                            </span>
                         </div>
-                    ))}
-                </div>
-            </div>
-            </>
-            ) : (
+
+                        {/* Result Preview */}
+                        <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center min-h-[300px]">
+                            {generatedLogic ? (
+                                <div className="w-full bg-white p-6 rounded-xl shadow-sm border border-slate-200 animate-fade-in-up">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded uppercase">New Logic Node</span>
+                                        <button onClick={() => setGeneratedLogic(null)} className="text-slate-400 hover:text-red-500">
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <h4 className="font-bold text-slate-900 text-lg mb-2">{generatedLogic.question}</h4>
+                                    <p className="text-sm text-slate-500 mb-4">{generatedLogic.description}</p>
+
+                                    <div className="space-y-2 mb-6">
+                                        {generatedLogic.options.map((opt, idx) => (
+                                            <div key={idx} className="p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 border border-slate-100">
+                                                {opt.label}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex space-x-3">
+                                        <button className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+                                            Edit
+                                        </button>
+                                        <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
+                                            <Check className="w-4 h-4 mr-2" />
+                                            Approve & Merge
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center text-slate-400">
+                                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                                    <p>Hasil analisa akan muncul di sini</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Existing Logic List */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="font-bold text-slate-900">Database Logika Aktif</h3>
+                            <button className="text-blue-600 text-sm font-medium hover:underline flex items-center">
+                                <Plus className="w-4 h-4 mr-1" />
+                                Tambah Manual
+                            </button>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                            {[
+                                { id: 'L001', name: 'Triase Gawat Darurat', updated: '2 Jam yang lalu', status: 'Active' },
+                                { id: 'L002', name: 'Algoritma Batuk Kronis', updated: '1 Hari yang lalu', status: 'Active' },
+                                { id: 'L003', name: 'Deteksi Dini Pneumonia', updated: '3 Hari yang lalu', status: 'Review' },
+                            ].map((item) => (
+                                <div key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs mr-4">
+                                            {item.id}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-slate-900">{item.name}</h4>
+                                            <p className="text-xs text-slate-500">Updated: {item.updated}</p>
+                                        </div>
+                                    </div>
+                                    <span className={clsx(
+                                        "px-3 py-1 rounded-full text-xs font-medium",
+                                        item.status === 'Active' ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                                    )}>
+                                        {item.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* ===== TAB: CRM ===== */}
+            {activeTab === 'crm' && (
                 <AdminNotificationDashboard />
             )}
         </div>

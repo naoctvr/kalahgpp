@@ -12,12 +12,15 @@ import {
     CheckCheck,
     Clock,
     MessageSquare,
-    MoreVertical
+    MoreVertical,
+    Lock
 } from 'lucide-react';
 import clsx from 'clsx';
+import ProGateOverlay from '../components/ui/ProGateOverlay';
 
 const Chat = () => {
     const { user } = useAuth();
+    const isPremium = user?.is_premium || user?.isPremium;
     const [contacts, setContacts] = useState([]);
     const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -82,9 +85,6 @@ const Chat = () => {
             const fetchMessages = async () => {
                 const res = await api.getMessages(user.id, activeChat.id);
                 if (res.success) {
-                    // Only update if data is different (simple length check or deep compare could be better, 
-                    // but React state update usually handles shallow equality if referentially same. 
-                    // API returns new array reference, so we need to be careful).
                     setMessages(res.data);
                 }
             };
@@ -105,13 +105,12 @@ const Chat = () => {
         return () => clearInterval(interval);
     }, [activeChat, user]);
 
-    // --- SCROLL TO BOTTOM (Fix for aggressive scrolling) ---
-    // Track the last message ID to verify if we actually have new content
+    // --- SCROLL TO BOTTOM ---
     const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : null;
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [lastMessageId]); // Only scroll when the *last message* changes, not on every poll update
+    }, [lastMessageId]);
 
     // Auto-focus input when chat opens
     useEffect(() => {
@@ -123,7 +122,7 @@ const Chat = () => {
     // --- SEND MESSAGE ---
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !activeChat) return;
+        if (!newMessage.trim() || !activeChat || !isPremium) return;
 
         const tempMessage = {
             id: Date.now(),
@@ -187,6 +186,59 @@ const Chat = () => {
     const handleBackToContacts = () => {
         setMobileView('contacts');
     };
+
+    // --- FREE USER: Show gate overlay for patients ---
+    if (user?.role === 'patient' && !isPremium) {
+        return (
+            <div className="bg-slate-100 p-4 pb-[72px] md:p-6 md:pb-6 flex items-center justify-center" style={{ height: '100%' }}>
+                <div className="w-full h-full max-w-7xl bg-white rounded-2xl shadow-xl overflow-hidden flex border border-slate-200">
+                    {/* Contact list preview (blurred) */}
+                    <div className="hidden md:flex w-[380px] bg-white border-r border-slate-100 flex-col relative">
+                        <div className="p-5 border-b border-slate-50">
+                            <h2 className="text-xl font-bold text-slate-800 mb-4">Pesan & Konsultasi</h2>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Cari dokter..."
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto opacity-40 blur-[1px] pointer-events-none">
+                            {contacts.slice(0, 5).map(contact => (
+                                <div key={contact.id} className="flex items-center gap-3 p-4 border-b border-slate-50">
+                                    <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-base font-bold text-slate-500">
+                                        {contact.name.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-sm font-semibold text-slate-700 truncate">{formatName(contact)}</h3>
+                                        <p className="text-xs text-slate-400 truncate">Mulai percakapan baru</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Lock overlay */}
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center">
+                                <Lock className="w-6 h-6 text-amber-600" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main area: Pro gate */}
+                    <div className="flex-1 flex flex-col bg-slate-50/30">
+                        <ProGateOverlay
+                            feature="Live Chat Dokter"
+                            description="Konsultasi real-time dengan dokter spesialis paru tanpa biaya tambahan. Upgrade ke Pro untuk akses unlimited chat dengan semua dokter."
+                            icon={MessageSquare}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

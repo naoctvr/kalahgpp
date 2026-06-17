@@ -271,5 +271,52 @@ export const api = {
         } catch (error) {
             return { success: false, message: 'Failed to cancel appointment' };
         }
+    },
+
+    // --- ADMIN: USER MANAGEMENT ---
+    getAdminUsers: async (params = {}) => {
+        try {
+            const query = new URLSearchParams(params).toString();
+            const response = await fetch(`${API_URL}/admin/users?${query}`);
+            return await response.json();
+        } catch (error) {
+            return { success: false, data: [] };
+        }
+    },
+
+    getSubscriptionStats: async () => {
+        try {
+            const response = await fetch(`${API_URL}/admin/subscription-stats`);
+            return await response.json();
+        } catch (error) {
+            return { success: false, data: {} };
+        }
+    },
+
+    toggleUserPremium: async (userId) => {
+        try {
+            const response = await fetch(`${API_URL}/admin/user/${userId}/toggle-premium`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            return await response.json();
+        } catch (error) {
+            return { success: false, message: 'Failed to toggle premium' };
+        }
+    },
+
+    upgradeUser: async () => {
+        try {
+            const response = await fetch(`${API_URL}/user/upgrade`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            return { success: false };
+        }
     }
 };

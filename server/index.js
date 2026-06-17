@@ -37,6 +37,18 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// --- PREMIUM CHECK HELPER ---
+const checkPremiumStatus = async (userId) => {
+    try {
+        const [rows] = await db.query('SELECT is_premium FROM users WHERE id = $1', [userId]);
+        if (rows.length === 0) return false;
+        return rows[0].is_premium === true;
+    } catch (err) {
+        console.error('Premium check error:', err);
+        return false;
+    }
+};
+
 // --- TELEGRAM ROUTES ---
 app.use('/api/telegram', telegramRoutes);
 
@@ -100,13 +112,19 @@ app.post('/api/user/upgrade', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Unauthorized: User ID tidak ditemukan' });
         }
 
-        // Update is_premium di tabel users
+        // Update is_premium dan premium_since di tabel users
         await db.query(
-            'UPDATE users SET is_premium = true WHERE id = $1',
+            'UPDATE users SET is_premium = true, premium_since = NOW() WHERE id = $1',
             [userId]
         );
 
-        res.json({ success: true, message: 'Upgrade berhasil!' });
+        // Fetch updated user data
+        const [updatedUser] = await db.query(
+            'SELECT id, name, email, role, is_premium, premium_since FROM users WHERE id = $1',
+            [userId]
+        );
+
+        res.json({ success: true, message: 'Upgrade berhasil!', user: updatedUser[0] || null });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server Error' });
@@ -275,7 +293,7 @@ app.get('/api/user/profile/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const [rows] = await db.query(
-            'SELECT name, email, height, weight, blood_type, birth_date, emergency_contact, institution, title_degree, sip_number FROM users WHERE id = $1',
+            'SELECT name, email, height, weight, blood_type, birth_date, emergency_contact, institution, title_degree, sip_number, is_premium, premium_since FROM users WHERE id = $1',
             [id]
         );
         if (rows.length > 0) {
@@ -385,11 +403,14 @@ app.post('/api/diagnosis', async (req, res) => {
 app.get('/api/history/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
+        // Check if user is premium — Free users get only 5 latest
+        const isPremium = await checkPremiumStatus(userId);
+        const limitClause = isPremium ? '' : ' LIMIT 5';
         const [rows] = await db.query(
-            'SELECT * FROM diagnosis_logs WHERE user_id = $1 ORDER BY created_at DESC',
+            `SELECT * FROM diagnosis_logs WHERE user_id = $1 ORDER BY created_at DESC${limitClause}`,
             [userId]
         );
-        res.json({ success: true, data: rows });
+        res.json({ success: true, data: rows, isPremium });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Failed to fetch history' });
@@ -724,6 +745,16 @@ app.post('/api/messages/mark-read', async (req, res) => {
 app.post('/api/messages/send', async (req, res) => {
     const { senderId, receiverId, content } = req.body;
     try {
+        // Check if sender is a patient — if so, must be premium
+        const [senderRows] = await db.query('SELECT role, is_premium FROM users WHERE id = $1', [senderId]);
+        if (senderRows.length > 0 && senderRows[0].role === 'patient' && !senderRows[0].is_premium) {
+            return res.status(403).json({ 
+                success: false, 
+                requiresPro: true,
+                message: 'Fitur chat hanya tersedia untuk member Pro. Silakan upgrade untuk konsultasi langsung dengan dokter.' 
+            });
+        }
+
         await db.query(
             'INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)',
             [senderId, receiverId, content]
@@ -776,6 +807,16 @@ app.get('/api/doctors', async (req, res) => {
 app.post('/api/consultations/book', async (req, res) => {
     const { userId, diagnosisId, doctorId, date, notes } = req.body;
     try {
+        // Premium check — only Pro users can book consultations
+        const isPremium = await checkPremiumStatus(userId);
+        if (!isPremium) {
+            return res.status(403).json({ 
+                success: false, 
+                requiresPro: true,
+                message: 'Fitur booking konsultasi hanya tersedia untuk member Pro.' 
+            });
+        }
+
         await db.query(
             'INSERT INTO consultations (user_id, doctor_id, diagnosis_log_id, requested_date, notes) VALUES ($1, $2, $3, $4, $5)',
             [userId, doctorId, diagnosisId, date, notes]
@@ -898,6 +939,138 @@ app.post('/api/consultations/cancel', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Gagal membatalkan janji.' });
+    }
+});
+
+// --- ADMIN: USER MANAGEMENT ROUTES ---
+
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        const { search, role, premium } = req.query;
+        let query = `
+            SELECT id, name, email, role, is_premium, premium_since, created_at, last_active_at
+            FROM users 
+            WHERE 1=1
+        `;
+        const params = [];
+        let paramIdx = 1;
+
+        if (search) {
+            query += ` AND (name ILIKE $${paramIdx} OR email ILIKE $${paramIdx})`;
+            params.push(`%${search}%`);
+            paramIdx++;
+        }
+        if (role && role !== 'all') {
+            query += ` AND role = $${paramIdx}`;
+            params.push(role);
+            paramIdx++;
+        }
+        if (premium === 'true') {
+            query += ` AND is_premium = true`;
+        } else if (premium === 'false') {
+            query += ` AND (is_premium = false OR is_premium IS NULL)`;
+        }
+
+        query += ` ORDER BY created_at DESC`;
+
+        const [rows] = await db.query(query, params);
+        res.json({ success: true, data: rows });
+    } catch (err) {
+        console.error('Admin Users Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch users' });
+    }
+});
+
+app.get('/api/admin/subscription-stats', async (req, res) => {
+    try {
+        const [totalUsersRows] = await db.query('SELECT COUNT(*) as count FROM users');
+        const [proUsersRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE is_premium = true');
+        const [freeUsersRows] = await db.query('SELECT COUNT(*) as count FROM users WHERE is_premium = false OR is_premium IS NULL');
+        const [patientRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'patient'");
+        const [expertRows] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'expert'");
+
+        // Recent pro upgrades (last 30 days)
+        const [recentUpgrades] = await db.query(`
+            SELECT id, name, email, premium_since 
+            FROM users 
+            WHERE is_premium = true AND premium_since IS NOT NULL
+            ORDER BY premium_since DESC 
+            LIMIT 10
+        `);
+
+        // Pro users by week (last 8 weeks)
+        const [weeklyGrowth] = await db.query(`
+            SELECT 
+                DATE_TRUNC('week', premium_since) as week,
+                COUNT(*) as count
+            FROM users 
+            WHERE is_premium = true AND premium_since IS NOT NULL
+                AND premium_since >= NOW() - INTERVAL '8 weeks'
+            GROUP BY DATE_TRUNC('week', premium_since)
+            ORDER BY week ASC
+        `);
+
+        const totalUsers = parseInt(totalUsersRows[0].count);
+        const proUsers = parseInt(proUsersRows[0].count);
+        const freeUsers = parseInt(freeUsersRows[0].count);
+        const totalPatients = parseInt(patientRows[0].count);
+        const totalExperts = parseInt(expertRows[0].count);
+        const estimatedRevenue = proUsers * 49000;
+
+        res.json({
+            success: true,
+            data: {
+                totalUsers,
+                proUsers,
+                freeUsers,
+                totalPatients,
+                totalExperts,
+                estimatedRevenue,
+                recentUpgrades,
+                weeklyGrowth: weeklyGrowth.map(w => ({
+                    week: new Date(w.week).toISOString().split('T')[0],
+                    count: parseInt(w.count)
+                }))
+            }
+        });
+    } catch (err) {
+        console.error('Subscription Stats Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch subscription stats' });
+    }
+});
+
+app.post('/api/admin/user/:id/toggle-premium', async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Get current status
+        const [userRows] = await db.query('SELECT is_premium FROM users WHERE id = $1', [id]);
+        if (userRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const currentPremium = userRows[0].is_premium;
+        const newPremium = !currentPremium;
+
+        if (newPremium) {
+            await db.query(
+                'UPDATE users SET is_premium = true, premium_since = NOW() WHERE id = $1',
+                [id]
+            );
+        } else {
+            await db.query(
+                'UPDATE users SET is_premium = false WHERE id = $1',
+                [id]
+            );
+        }
+
+        res.json({ 
+            success: true, 
+            message: newPremium ? 'User upgraded to Pro' : 'User downgraded to Free',
+            is_premium: newPremium
+        });
+    } catch (err) {
+        console.error('Toggle Premium Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to toggle premium status' });
     }
 });
 

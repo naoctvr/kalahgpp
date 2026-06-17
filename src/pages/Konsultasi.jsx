@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, MessageSquare, CheckCircle, AlertCircle, Plus, XCircle } from 'lucide-react';
+import { Calendar, Clock, User, MessageSquare, CheckCircle, AlertCircle, Plus, XCircle, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import BookingModal from '../components/modals/BookingModal';
 import PrescribeMedicationModal from '../components/modals/PrescribeMedicationModal';
+import ProGateOverlay from '../components/ui/ProGateOverlay';
 import { Card, Badge, Button, cn } from '../components/ui/Widgets';
 
 const Konsultasi = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const isPremium = user?.is_premium || user?.isPremium;
     const [appointments, setAppointments] = useState([]);
     const [diagnosisHistory, setDiagnosisHistory] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -81,6 +83,35 @@ const Konsultasi = () => {
         // Navigate to chat with the specific contact ID
         navigate('/chat', { state: { targetContactId: targetId } });
     };
+
+    // --- FREE USER GATE for patients ---
+    if (user?.role === 'patient' && !isPremium) {
+        return (
+            <div className="max-w-[1200px] mx-auto p-6 space-y-6 overflow-x-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900">Jadwal Konsultasi</h1>
+                        <p className="text-slate-500">
+                            Buat janji temu dengan dokter spesialis paru.
+                        </p>
+                    </div>
+                    <Button
+                        disabled
+                        className="bg-slate-200 text-slate-400 cursor-not-allowed px-6 py-2.5 rounded-xl flex items-center gap-2"
+                    >
+                        <Lock size={18} />
+                        Buat Janji Baru (Pro)
+                    </Button>
+                </div>
+
+                <ProGateOverlay
+                    feature="Konsultasi Dokter"
+                    description="Buat janji temu dan konsultasi langsung dengan dokter spesialis paru. Biaya Rp 49.000/bulan sudah termasuk unlimited booking dan chat."
+                    icon={Calendar}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-[1200px] mx-auto p-6 space-y-6 overflow-x-hidden">

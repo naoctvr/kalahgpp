@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Activity, History as HistoryIcon, MessageSquare, Calendar, AlertTriangle, Phone, Check, X, Clock, Plus, MapPin, Sparkles } from 'lucide-react';
+import { Activity, History as HistoryIcon, MessageSquare, Calendar, AlertTriangle, Phone, Check, X, Clock, Plus, MapPin, Sparkles, Lock, Crown } from 'lucide-react';
 import { Card, Badge, Button, cn } from '../components/ui/Widgets';
 import BioNetwork from '../components/visuals/BioNetwork';
 import { ScoreCard, AQICard, ProfileMiniCard } from '../components/ui/DashboardWidgets';
@@ -18,6 +18,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 const DashboardUser = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const isPremium = user?.is_premium || user?.isPremium;
 
     // State
     const [loading, setLoading] = useState(true);
@@ -267,15 +268,31 @@ const DashboardUser = () => {
                         </div>
 
                         {/* Chat notification compact */}
-                        <div className="snap-start shrink-0 w-[140px] bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer active:bg-slate-50"
-                             onClick={() => navigate('/chat', { state: latestMessage ? { targetContactId: latestMessage.contact_id } : undefined })}>
+                        <div className="snap-start shrink-0 w-[140px] bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer active:bg-slate-50 relative"
+                             onClick={() => {
+                                 if (!isPremium) { setShowUpgradeModal(true); return; }
+                                 navigate('/chat', { state: latestMessage ? { targetContactId: latestMessage.contact_id } : undefined });
+                             }}>
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-xs text-slate-400">Pesan</p>
-                                {unreadCount > 0 && (
+                                {!isPremium && (
+                                    <span className="w-4 h-4 bg-amber-100 rounded-full flex items-center justify-center">
+                                        <Lock className="w-2.5 h-2.5 text-amber-600" />
+                                    </span>
+                                )}
+                                {isPremium && unreadCount > 0 && (
                                     <span className="w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center">{unreadCount}</span>
                                 )}
                             </div>
-                            {latestMessage ? (
+                            {!isPremium ? (
+                                <>
+                                    <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center mb-2">
+                                        <Crown className="w-4 h-4 text-amber-500" />
+                                    </div>
+                                    <p className="text-xs font-bold text-amber-700">Pro Only</p>
+                                    <p className="text-[10px] text-slate-400 mt-0.5">Upgrade untuk chat</p>
+                                </>
+                            ) : latestMessage ? (
                                 <>
                                     <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm mb-2">
                                         {latestMessage.sender_name?.charAt(0) || '?'}
@@ -297,9 +314,27 @@ const DashboardUser = () => {
                             const nextAppt = appointments.filter(a => new Date(a.requested_date) >= new Date() && a.status !== 'rejected')[0];
                             return (
                                 <div className="snap-start shrink-0 w-[140px] bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer active:bg-slate-50"
-                                     onClick={() => nextAppt ? navigate('/konsultasi') : setShowBookingModal(true)}>
-                                    <p className="text-xs text-slate-400 mb-2">Konsultasi</p>
-                                    {nextAppt ? (
+                                     onClick={() => {
+                                         if (!isPremium) { setShowUpgradeModal(true); return; }
+                                         nextAppt ? navigate('/konsultasi') : setShowBookingModal(true);
+                                     }}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-slate-400">Konsultasi</p>
+                                        {!isPremium && (
+                                            <span className="w-4 h-4 bg-amber-100 rounded-full flex items-center justify-center">
+                                                <Lock className="w-2.5 h-2.5 text-amber-600" />
+                                            </span>
+                                        )}
+                                    </div>
+                                    {!isPremium ? (
+                                        <>
+                                            <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center mb-2">
+                                                <Crown className="w-4 h-4 text-amber-500" />
+                                            </div>
+                                            <p className="text-xs font-bold text-amber-700">Pro Only</p>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">Upgrade untuk booking</p>
+                                        </>
+                                    ) : nextAppt ? (
                                         <>
                                             <div className="w-8 h-8 rounded-xl bg-teal-100 flex items-center justify-center mb-2">
                                                 <Calendar className="w-4 h-4 text-teal-600" />

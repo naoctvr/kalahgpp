@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { X, AlertCircle, Check, Loader } from 'lucide-react';
+import { X, AlertCircle, Check, Loader, Crown, MessageSquare, Calendar, Bell, Sparkles, Zap, Shield } from 'lucide-react';
 import { Card, Button, Badge } from '../ui/Widgets';
 import { useAuth } from '../../context/AuthContext';
 
 const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
   const { user, updateUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedPlan, setSelectedPlan] = useState('pro');
   const [formData, setFormData] = useState({
-    telegramUsername: '',
-    telegramUserId: '',
     paymentMethod: 'credit_card'
   });
   const [loading, setLoading] = useState(false);
@@ -84,100 +81,14 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
     obtainToken();
   }, [currentStep, isOpen]);
 
-  const plans = {
-    pro: {
-      name: 'Pro',
-      price: 'Rp 49.000',
-      period: '/bulan',
-      features: [
-        'Unlimited booking konsultasi',
-        'Chat dengan dokter',
-        'Notifikasi Telegram real-time',
-        'Health score card',
-        'Patient journey timeline'
-      ],
-      color: 'from-blue-500 to-cyan-500'
-    },
-    enterprise: {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: 'mulai Rp 2.5M',
-      features: [
-        'Semua fitur Pro',
-        'Notifikasi BPJS/asuransi via Telegram',
-        'Admin broadcast ke segmen pasien',
-        'Multi-klinik manager',
-        'Audit log & compliance',
-        'Laporan mingguan via Telegram',
-        'API akses'
-      ],
-      color: 'from-purple-500 to-pink-500'
-    }
-  };
-
-  const plan = plans[selectedPlan];
-
-  const handleTelegramInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
-  };
-
-  const handleSendVerification = async () => {
-    try {
-      setError('');
-      setLoading(true);
-
-      let telegramId = null;
-      if (formData.telegramUserId) {
-        const cleanId = formData.telegramUserId.toString().replace(/\D/g, '');
-        if (cleanId) telegramId = parseInt(cleanId);
-      }
-      
-      if (!telegramId && formData.telegramUsername) {
-        telegramId = formData.telegramUsername.trim();
-        if (telegramId && !telegramId.startsWith('@')) {
-          telegramId = '@' + telegramId;
-        }
-      }
-
-      if (!telegramId) {
-        setError('Masukkan username atau ID Telegram yang valid');
-        setLoading(false);
-        return;
-      }
-
-      // API call untuk mengirim verifikasi
-      const response = await fetch('/api/telegram/send-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          telegram_user_id: telegramId,
-          userId: user?.id
-        })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Gagal mengirim verifikasi');
-      }
-
-      const resData = await response.json();
-      if (resData.token) {
-        setVerificationToken(resData.token);
-      }
-
-      setSuccess('Pesan verifikasi telah dikirim ke Telegram Anda!');
-      setVerificationSent(true);
-    } catch (err) {
-      setError(err.message || 'Terjadi kesalahan');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const proFeatures = [
+    { icon: MessageSquare, text: 'Chat unlimited dengan semua dokter spesialis', highlight: true },
+    { icon: Calendar, text: 'Booking konsultasi tanpa batas', highlight: true },
+    { icon: Bell, text: 'Notifikasi & laporan harian via Telegram' },
+    { icon: Sparkles, text: 'Riwayat diagnosa tanpa batas waktu' },
+    { icon: Zap, text: 'Prioritas antrean konsultasi' },
+    { icon: Shield, text: 'Analisa tren kesehatan bertenaga AI' },
+  ];
 
   const handleContinue = () => {
     if (currentStep === 1) {
@@ -205,7 +116,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ plan: selectedPlan })
+        body: JSON.stringify({ plan: 'pro' })
       });
 
       if (!response.ok) {
@@ -215,7 +126,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
       // Update state user secara lokal
       updateUser({ is_premium: true });
 
-      setSuccess(`✅ Upgrade ke ${plan.name} berhasil! Notifikasi Telegram aktif.`);
+      setSuccess('✅ Upgrade ke Pro berhasil! Semua fitur premium telah aktif.');
       setTimeout(() => {
         onSuccess?.();
         onClose();
@@ -235,8 +146,13 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-slate-900">🫁 Upgrade ke {plan.name}</h2>
-            <p className="text-slate-500 mt-1">Nikmati fitur premium dengan notifikasi Telegram real-time</p>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-200">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">Upgrade ke Pro</h2>
+            </div>
+            <p className="text-slate-500 text-sm">Nikmati akses unlimited telemedicine & fitur premium</p>
           </div>
           <button
             onClick={onClose}
@@ -253,7 +169,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
               key={step}
               className={`h-2 flex-1 rounded-full transition-all ${
                 step <= currentStep
-                  ? 'bg-gradient-to-r from-teal-500 to-cyan-500'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500'
                   : 'bg-slate-200'
               }`}
             />
@@ -261,8 +177,8 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Step Indicator Text */}
-        <div className="text-sm font-semibold text-teal-600 mb-6">
-          Step {currentStep} dari 3
+        <div className="text-sm font-semibold text-amber-600 mb-6">
+          Step {currentStep} dari 3 — {currentStep === 1 ? 'Review Fitur' : currentStep === 2 ? 'Pembayaran' : 'Telegram'}
         </div>
 
         {/* Alert Messages */}
@@ -280,37 +196,52 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
         )}
 
-        {/* STEP 1: Pilih Paket */}
+        {/* STEP 1: Review Fitur Pro */}
         {currentStep === 1 && (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-slate-900">Pilih Paket Berlangganan</h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(plans).map(([key, p]) => (
-                <div
-                  key={key}
-                  onClick={() => setSelectedPlan(key)}
-                  className={`p-6 border-2 rounded-2xl cursor-pointer transition-all ${
-                    selectedPlan === key
-                      ? 'border-teal-500 bg-teal-50/50 ring-2 ring-teal-200'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className={`inline-block px-3 py-1 rounded-full text-white text-xs font-bold mb-3 bg-gradient-to-r ${p.color}`}>
-                    {p.name}
+            {/* Price Card */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Pro Plan</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold">Rp 49.000</span>
+                    <span className="text-sm text-slate-400">/bulan</span>
                   </div>
-                  <div className="text-3xl font-bold text-slate-900 mb-1">{p.price}</div>
-                  <div className="text-xs text-slate-500 mb-4">{p.period}</div>
-                  <ul className="space-y-2">
-                    {p.features.slice(0, 3).map((feature, idx) => (
-                      <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
-                        <span className="text-teal-500 mt-1">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+                </div>
+                <div className="bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 rounded-xl">
+                  <p className="text-xs font-bold text-amber-400">All-Inclusive</p>
+                  <p className="text-[10px] text-amber-300/70">Tanpa biaya tambahan</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature List */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Fitur yang Anda dapatkan</h3>
+              {proFeatures.map((feature, idx) => (
+                <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                  feature.highlight ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'
+                }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    feature.highlight ? 'bg-amber-100' : 'bg-slate-100'
+                  }`}>
+                    <feature.icon className={`w-4 h-4 ${feature.highlight ? 'text-amber-600' : 'text-slate-500'}`} />
+                  </div>
+                  <span className={`text-sm font-medium ${feature.highlight ? 'text-amber-800' : 'text-slate-700'}`}>
+                    {feature.text}
+                  </span>
+                  {feature.highlight && (
+                    <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full shrink-0">BARU</span>
+                  )}
                 </div>
               ))}
+            </div>
+
+            <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl">
+              <p className="text-sm text-teal-800">
+                <strong>💡 Bebas chat dokter manapun!</strong> Biaya Rp 49.000/bulan sudah termasuk unlimited chat dan booking konsultasi dengan seluruh dokter spesialis yang tersedia.
+              </p>
             </div>
           </div>
         )}
@@ -322,7 +253,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div className="space-y-3">
               {['credit_card', 'bank_transfer', 'e_wallet'].map(method => (
-                <label key={method} className="flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-teal-300 transition">
+                <label key={method} className="flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 transition">
                   <input
                     type="radio"
                     name="payment"
@@ -368,13 +299,13 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
 
             {loading && !verificationToken ? (
               <div className="p-8 flex flex-col items-center justify-center gap-3">
-                <Loader className="w-8 h-8 text-teal-500 animate-spin" />
+                <Loader className="w-8 h-8 text-amber-500 animate-spin" />
                 <p className="text-slate-500 text-sm">Menyiapkan token verifikasi aman...</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="p-4 bg-teal-50 border border-teal-100 rounded-xl">
-                  <p className="text-teal-800 text-sm leading-relaxed">
+                <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                  <p className="text-amber-800 text-sm leading-relaxed">
                     Sistem kami telah menghasilkan token verifikasi aman untuk akun Anda. Klik tombol di bawah ini untuk menghubungkan bot Telegram secara otomatis.
                   </p>
                 </div>
@@ -383,13 +314,13 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
                   href={`https://t.me/healthycrm_bot?start=${verificationToken}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full px-6 py-4 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-center text-base shadow-md animate-pulse"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-bold rounded-xl hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-center text-base shadow-md animate-pulse"
                 >
                   ⚡ HUBUNGKAN TELEGRAM INSTAN
                 </a>
 
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center gap-3">
-                  <Loader className="w-5 h-5 text-teal-500 animate-spin" />
+                  <Loader className="w-5 h-5 text-amber-500 animate-spin" />
                   <p className="text-slate-600 text-sm font-medium">
                     Menunggu Anda menekan tombol "Start" di Telegram...
                   </p>
@@ -414,7 +345,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               onClick={handleContinue}
               disabled={currentStep === 2 && !formData.paymentMethod}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50"
             >
               Lanjutkan →
             </button>
@@ -422,7 +353,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               onClick={handleContinue}
               disabled={loading || !verificationSent}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
