@@ -124,7 +124,7 @@ const Pricing = () => {
             )}
 
             {/* Grid Kartu Pricing — 2 Columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mb-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mb-12 max-w-4xl mx-auto px-0">
                 {/* FREE PLAN */}
                 <div className={`relative rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between ${
                     isPremium
@@ -188,7 +188,7 @@ const Pricing = () => {
                 </div>
 
                 {/* PRO PLAN */}
-                <div className={`relative rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between bg-gradient-to-b from-teal-950 via-teal-900 to-slate-950 text-white shadow-xl scale-[1.02] z-10 ${
+                <div className={`relative rounded-3xl p-8 transition-all duration-300 flex flex-col justify-between bg-gradient-to-b from-teal-950 via-teal-900 to-slate-950 text-white shadow-xl md:scale-[1.02] z-10 ${
                     isPremium
                         ? 'border-2 border-teal-500'
                         : 'border border-teal-600/50'
