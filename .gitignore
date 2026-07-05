@@ -1,6 +1,14 @@
 # Backup folder - tidak perlu di-deploy
 BACKUP/
 
+# Debug files
+debug_*.js
+debug_*.cjs
+debug_*.txt
+build_*.txt
+dev_error.txt
+db.json
+
 # Logs
 logs
 *.log

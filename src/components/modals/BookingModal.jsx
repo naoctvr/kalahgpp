@@ -243,7 +243,7 @@ const BookingModal = ({ isOpen, onClose, userId, history, onSuccess }) => {
 
             {/* 3. Date & Time */}
             <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                             <Calendar size={16} className="text-teal-500" />

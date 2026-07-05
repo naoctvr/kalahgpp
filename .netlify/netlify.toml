@@ -7,12 +7,14 @@ headers = []
 [functions."*"]
 
 [build]
-publish = "/home/ale/kalahgpp/dist"
+publish = "/home/ale/College/kalahgpp/dist/dist"
 publishOrigin = "config"
-commandOrigin = "ui"
+commandOrigin = "config"
+base = "/home/ale/College/kalahgpp/dist"
 command = "npm run build"
 
 [build.environment]
+NODE_VERSION = "20"
 
 [build.processing]
 

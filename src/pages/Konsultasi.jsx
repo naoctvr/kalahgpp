@@ -106,7 +106,7 @@ const Konsultasi = () => {
 
                 <ProGateOverlay
                     feature="Konsultasi Dokter"
-                    description="Buat janji temu dan konsultasi langsung dengan dokter spesialis paru. Biaya Rp 49.000/bulan sudah termasuk unlimited booking dan chat."
+                    description="Buat janji temu dan konsultasi langsung dengan dokter spesialis paru. Biaya Rp 49.000/bulan sudah termasuk 2x kuota booking gratis tiap bulan dan unlimited chat."
                     icon={Calendar}
                 />
             </div>
