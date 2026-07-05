@@ -1,8 +1,23 @@
 const { Pool } = require('pg');
 
-// Parse DATABASE_URL manually untuk handle username dengan titik (Supabase pooler)
+// Support both connection string and individual params
+// Individual params needed when pooler hostname has DNS issues
 let poolConfig;
-if (process.env.DATABASE_URL) {
+
+if (process.env.DB_HOST) {
+    // Individual connection parameters (more reliable with Supabase pooler)
+    poolConfig = {
+        host: process.env.DB_HOST,
+        port: parseInt(process.env.DB_PORT || '6543'),
+        database: process.env.DB_NAME || 'postgres',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        ssl: { rejectUnauthorized: false },
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+    };
+} else if (process.env.DATABASE_URL) {
     poolConfig = {
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
@@ -11,12 +26,7 @@ if (process.env.DATABASE_URL) {
         connectionTimeoutMillis: 10000,
     };
 } else {
-    poolConfig = {
-        host: 'localhost',
-        port: 5432,
-        database: 'postgres',
-        ssl: false,
-    };
+    poolConfig = { host: 'localhost', port: 5432, database: 'postgres' };
 }
 
 const pool = new Pool(poolConfig);
