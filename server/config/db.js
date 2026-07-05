@@ -1,12 +1,25 @@
 const { Pool } = require('pg');
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
-});
+// Parse DATABASE_URL manually untuk handle username dengan titik (Supabase pooler)
+let poolConfig;
+if (process.env.DATABASE_URL) {
+    poolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+    };
+} else {
+    poolConfig = {
+        host: 'localhost',
+        port: 5432,
+        database: 'postgres',
+        ssl: false,
+    };
+}
+
+const pool = new Pool(poolConfig);
 
 pool.connect((err, client, release) => {
     if (err) {
