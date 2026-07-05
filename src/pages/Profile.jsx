@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { User, Save, Phone, Calendar, Activity, Droplet, Ruler, Weight, Bell, Shield, Lock, Trash2, Send, Plus, Pin, LogOut, ArrowLeft, Clock } from 'lucide-react';
 import { Card, Button } from '../components/ui/Widgets';
 import { useAuth } from '../context/AuthContext';
