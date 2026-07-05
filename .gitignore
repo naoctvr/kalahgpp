@@ -1,3 +1,6 @@
+# Backup folder - tidak perlu di-deploy
+BACKUP/
+
 # Logs
 logs
 *.log
