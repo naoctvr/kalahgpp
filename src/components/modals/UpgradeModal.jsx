@@ -142,7 +142,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl p-8">
+      <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl p-5 sm:p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -201,7 +201,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
           <div className="space-y-6">
             {/* Price Card */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white border border-slate-700/50">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold text-teal-400 uppercase tracking-wider mb-1">Pro Plan</p>
                   <div className="flex items-baseline gap-1">
@@ -209,7 +209,7 @@ const UpgradeModal = ({ isOpen, onClose, onSuccess }) => {
                     <span className="text-sm text-slate-400">/bulan</span>
                   </div>
                 </div>
-                <div className="bg-teal-500/20 border border-teal-500/30 px-3 py-1.5 rounded-xl">
+                <div className="bg-teal-500/20 border border-teal-500/30 px-3 py-1.5 rounded-xl self-start sm:self-auto">
                   <p className="text-xs font-bold text-teal-400">All-Inclusive</p>
                   <p className="text-[10px] text-teal-300/70">Tanpa biaya tambahan</p>
                 </div>
