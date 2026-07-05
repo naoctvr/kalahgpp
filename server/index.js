@@ -61,6 +61,16 @@ const checkPremiumStatus = async (userId) => {
 // --- TELEGRAM ROUTES ---
 app.use('/api/telegram', telegramRoutes);
 
+// --- HEALTH CHECK ---
+app.get('/api/health', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT NOW() as time');
+        res.json({ success: true, time: rows[0].time, message: 'Backend OK' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // --- AUTH ROUTES ---
 
 app.post('/api/register', async (req, res) => {
